@@ -1,6 +1,9 @@
 import { useMutation } from "@apollo/client";
-import { GOOGLE_AUTH_MUTATION, type AuthResponse } from "@/graphql/auth";
-import { setAuthToken } from "@/lib/apollo-client";
+import {
+  GOOGLE_AUTH_MUTATION,
+  type AuthResponse,
+  setAuthToken,
+} from "@/graphql/auth";
 
 export const useAuth = () => {
   const [googleAuthMutation] = useMutation<

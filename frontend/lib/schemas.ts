@@ -144,8 +144,8 @@ export const extendedInventorySchema = inventorySchema.extend({
 
 export const extendedTicketSchema = ticketSchema.extend({
   id: z.string(),
-  created_at: z.string(),
-  updated_at: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string().nullable(),
   customer: z.union([
     z.string(),
     z.object({

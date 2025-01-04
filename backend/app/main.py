@@ -10,6 +10,7 @@ from app.routes.employee_routes import Query as EmployeeQuery, Mutation as Emplo
 from app.routes.customer_routes import Query as CustomerQuery, Mutation as CustomerMutation
 from app.routes.inventory_routes import Query as InventoryQuery, Mutation as InventoryMutation
 from app.routes.package_routes import Query as PackageQuery, Mutation as PackageMutation
+from app.routes.ticket_routes import Query as TicketQuery, Mutation as TicketMutation
 from app.middleware.auth_middleware import get_context
 from app.middleware.context import CustomContext
 import strawberry
@@ -32,11 +33,11 @@ logger = logging.getLogger(__name__)
 
 # Create Schema
 @strawberry.type
-class Query(UserQuery, AgencyQuery, EmployeeQuery, CustomerQuery, InventoryQuery, PackageQuery):
+class Query(UserQuery, AgencyQuery, EmployeeQuery, CustomerQuery, InventoryQuery, PackageQuery, TicketQuery):
     pass
 
 @strawberry.type
-class Mutation(UserMutation, AuthMutation, AgencyMutation, EmployeeMutation, CustomerMutation, InventoryMutation, PackageMutation):
+class Mutation(UserMutation, AuthMutation, AgencyMutation, EmployeeMutation, CustomerMutation, InventoryMutation, PackageMutation, TicketMutation):
     pass
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)

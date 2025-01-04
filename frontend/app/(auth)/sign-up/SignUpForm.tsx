@@ -14,8 +14,11 @@ import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
-import { SIGNUP_MUTATION, type AuthResponse } from "@/graphql/auth";
-import { setAuthToken } from "@/lib/apollo-client";
+import {
+  SIGNUP_MUTATION,
+  type AuthResponse,
+  setAuthToken,
+} from "@/graphql/auth";
 import { Chrome } from "lucide-react";
 
 type SignUpFormValues = z.infer<typeof signUpFormSchema>;

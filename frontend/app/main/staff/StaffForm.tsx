@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -11,43 +10,46 @@ import {
   FormLabel,
   FormMessage,
 } from "../../../components/ui/form";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import CustomInput from "./CustomInput";
+import { useEmployee } from "@/graphql/employee";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { staffSchema } from "@/lib/schemas";
+import { z } from "zod";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../../components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../../../components/ui/command";
-import { EmployeeInput, useEmployee } from "@/graphql/employee";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type FormData = z.infer<typeof staffSchema>;
+
+const roles = [
+  { label: "Admin", value: "admin" },
+  { label: "Employee", value: "employee" },
+] as const;
 
 const CreateStaffForm = () => {
   const router = useRouter();
   const { createEmployee, isCreating } = useEmployee();
 
-  const defaultValues: EmployeeInput = {
-    name: "",
-    email: "",
-    username: "",
-    password: "",
-    phone: "",
-    role: "employee",
-  };
-
-  const form = useForm<EmployeeInput>({
-    defaultValues,
+  const form = useForm<FormData>({
+    resolver: zodResolver(staffSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      username: "",
+      password: "",
+      phone: "",
+      role: "employee",
+    },
   });
 
-  const onSubmit = async (values: EmployeeInput) => {
+  const onSubmit = async (values: FormData) => {
     try {
       await createEmployee(values);
       toast.success("Staff member created successfully.");
@@ -68,12 +70,14 @@ const CreateStaffForm = () => {
             name="username"
             label="Username"
             placeholder="EXAMPLE09"
+            required
           />
           <CustomInput
             control={form.control}
             name="password"
             label="Password"
             placeholder="123xyz"
+            required
           />
         </div>
 
@@ -83,12 +87,14 @@ const CreateStaffForm = () => {
             name="name"
             label="Full Name"
             placeholder="John Doe"
+            required
           />
           <CustomInput
             control={form.control}
             name="email"
             label="Email"
             placeholder="jd@gmail.com"
+            required
           />
         </div>
 
@@ -98,62 +104,31 @@ const CreateStaffForm = () => {
             name="phone"
             label="Phone Number"
             placeholder="Enter Your Phone Number"
+            required
           />
           <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="mb-1">Role</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "w-full justify-between h-10",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value || "Select Role"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search role..." />
-                      <CommandList>
-                        <CommandEmpty>No role found.</CommandEmpty>
-                        <CommandGroup>
-                          {["admin", "employee"].map((role) => (
-                            <CommandItem
-                              value={role}
-                              key={role}
-                              onSelect={() => {
-                                form.setValue(
-                                  "role",
-                                  role as "admin" | "employee"
-                                );
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  role === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {role}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

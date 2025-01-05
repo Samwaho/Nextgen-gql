@@ -12,7 +12,17 @@ import { useRouter } from "next/navigation";
 import CustomInput from "./CustomInput";
 import { Package, usePackage } from "@/graphql/package";
 
-type PackageFormValues = z.infer<typeof packageSchema>;
+// Create a modified schema for edit mode where optional fields are truly optional
+const editPackageSchema = packageSchema.extend({
+  burstDownload: z.coerce.number().min(0).nullable(),
+  burstUpload: z.coerce.number().min(0).nullable(),
+  thresholdDownload: z.coerce.number().min(0).nullable(),
+  thresholdUpload: z.coerce.number().min(0).nullable(),
+  burstTime: z.coerce.number().min(0).nullable(),
+  radiusProfile: z.string().nullable(),
+});
+
+type PackageFormValues = z.infer<typeof editPackageSchema>;
 
 interface EditPackageFormProps {
   package: Package;
@@ -25,14 +35,14 @@ export default function EditPackageForm({
   const { updatePackage, isUpdating } = usePackage();
 
   const form = useForm<PackageFormValues>({
-    resolver: zodResolver(packageSchema),
+    resolver: zodResolver(editPackageSchema),
     defaultValues: {
-      name: initialPackage.name,
-      bandwidth: initialPackage.bandwidth,
-      price: initialPackage.price,
-      type: initialPackage.type,
-      downloadSpeed: initialPackage.downloadSpeed,
-      uploadSpeed: initialPackage.uploadSpeed,
+      name: initialPackage.name || "",
+      bandwidth: initialPackage.bandwidth || "",
+      price: initialPackage.price || 0,
+      type: initialPackage.type || "",
+      downloadSpeed: initialPackage.downloadSpeed || 0,
+      uploadSpeed: initialPackage.uploadSpeed || 0,
       burstDownload: initialPackage.burstDownload,
       burstUpload: initialPackage.burstUpload,
       thresholdDownload: initialPackage.thresholdDownload,
@@ -44,17 +54,45 @@ export default function EditPackageForm({
 
   const onSubmit = async (values: PackageFormValues) => {
     try {
-      const input = {
+      // Convert numeric fields and handle null values
+      const numericFields = [
+        "price",
+        "downloadSpeed",
+        "uploadSpeed",
+        "burstDownload",
+        "burstUpload",
+        "thresholdDownload",
+        "thresholdUpload",
+        "burstTime",
+      ] as const;
+
+      const updateData = {
         ...values,
-        burstDownload: values.burstDownload || undefined,
-        burstUpload: values.burstUpload || undefined,
-        thresholdDownload: values.thresholdDownload || undefined,
-        thresholdUpload: values.thresholdUpload || undefined,
-        burstTime: values.burstTime || undefined,
-        radiusProfile: values.radiusProfile || undefined,
+        ...Object.fromEntries(
+          numericFields.map((field) => [
+            field,
+            values[field] ? Number(values[field]) : null,
+          ])
+        ),
       };
 
-      await updatePackage(initialPackage.id, input);
+      // Remove empty/null values except for required fields
+      const requiredFields = [
+        "name",
+        "bandwidth",
+        "price",
+        "type",
+        "downloadSpeed",
+        "uploadSpeed",
+      ];
+      const cleanedData = Object.fromEntries(
+        Object.entries(updateData).filter(
+          ([key, value]) =>
+            requiredFields.includes(key) || (value !== null && value !== "")
+        )
+      );
+
+      await updatePackage(initialPackage.id, cleanedData);
       toast.success("Package updated successfully");
       router.refresh();
     } catch (error) {
@@ -72,6 +110,7 @@ export default function EditPackageForm({
             name="name"
             label="Package Name"
             placeholder="Enter package name"
+            required
           />
           <CustomInput
             control={form.control}
@@ -79,6 +118,7 @@ export default function EditPackageForm({
             label="Price"
             placeholder="Enter price"
             type="number"
+            required
           />
         </div>
 
@@ -88,12 +128,14 @@ export default function EditPackageForm({
             name="bandwidth"
             label="Bandwidth"
             placeholder="Enter bandwidth in the format of 5M/5M"
+            required
           />
           <CustomInput
             control={form.control}
             name="type"
             label="Type"
             placeholder="Enter type"
+            required
           />
         </div>
 
@@ -104,6 +146,7 @@ export default function EditPackageForm({
             label="Download Speed"
             placeholder="Enter download speed"
             type="number"
+            required
           />
           <CustomInput
             control={form.control}
@@ -111,6 +154,7 @@ export default function EditPackageForm({
             label="Upload Speed"
             placeholder="Enter upload speed"
             type="number"
+            required
           />
         </div>
 
@@ -118,14 +162,14 @@ export default function EditPackageForm({
           <CustomInput
             control={form.control}
             name="burstDownload"
-            label="Burst Download"
+            label="Burst Download (Optional)"
             placeholder="Enter burst download"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="burstUpload"
-            label="Burst Upload"
+            label="Burst Upload (Optional)"
             placeholder="Enter burst upload"
             type="number"
           />
@@ -135,14 +179,14 @@ export default function EditPackageForm({
           <CustomInput
             control={form.control}
             name="thresholdDownload"
-            label="Threshold Download"
+            label="Threshold Download (Optional)"
             placeholder="Enter threshold download"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="thresholdUpload"
-            label="Threshold Upload"
+            label="Threshold Upload (Optional)"
             placeholder="Enter threshold upload"
             type="number"
           />
@@ -152,14 +196,14 @@ export default function EditPackageForm({
           <CustomInput
             control={form.control}
             name="burstTime"
-            label="Burst Time"
+            label="Burst Time (Optional)"
             placeholder="Enter burst time"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="radiusProfile"
-            label="Radius Profile"
+            label="Radius Profile (Optional)"
             placeholder="Enter radius profile"
           />
         </div>

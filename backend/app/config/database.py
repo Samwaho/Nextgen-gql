@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class Database:
     client: Optional[AsyncIOMotorClient] = None
     MAX_RETRIES = 3
-    RETRY_DELAY = 5  # seconds
+    RETRY_DELAY = 2  # seconds
     
     @classmethod
     async def connect_to_database(cls):
@@ -24,18 +24,20 @@ class Database:
                     settings.MONGODB_URL,
                     serverSelectionTimeoutMS=5000,
                     connectTimeoutMS=5000,
-                    retryWrites=True
+                    maxPoolSize=10,
+                    retryWrites=True,
+                    retryReads=True
                 )
-                # Ping the database to verify the connection
+                
+                # Verify connection
                 await cls.client.admin.command('ping')
-                if retries > 0:
-                    logger.info("Successfully reconnected to MongoDB")
+                logger.info("Successfully connected to MongoDB")
                 return
+                
             except (ConnectionFailure, ConfigurationError, ServerSelectionTimeoutError) as e:
                 retries += 1
                 if retries < cls.MAX_RETRIES:
                     logger.warning(f"Connection attempt failed: {str(e)}")
-                    logger.info(f"Waiting {cls.RETRY_DELAY} seconds before retry...")
                     await asyncio.sleep(cls.RETRY_DELAY)
                 else:
                     logger.error("Max retries reached. Could not establish database connection")
@@ -47,27 +49,19 @@ class Database:
     @classmethod
     async def close_database_connection(cls):
         if cls.client is not None:
-            try:
-                cls.client.close()
-                cls.client = None
-            except Exception as e:
-                logger.error(f"Error closing database connection: {str(e)}")
-                raise
+            cls.client.close()
+            cls.client = None
 
     @classmethod
     def get_database(cls):
-        """
-        Get database instance
-        """
+        """Get database instance"""
         if cls.client is None:
             raise ConnectionError("Database client not initialized")
         return cls.client[settings.DATABASE_NAME]
 
     @classmethod
     def get_collection(cls, collection_name: str):
-        """
-        Get collection from database
-        """
+        """Get collection from database"""
         return cls.get_database()[collection_name]
 
 # Database instance

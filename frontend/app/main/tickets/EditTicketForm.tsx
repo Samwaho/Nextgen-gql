@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useTicket, TicketInput } from "@/graphql/ticket";
+import { useTicket } from "@/graphql/ticket";
 import CustomInput from "./CustomInput";
 import { useQuery } from "@apollo/client";
 import { GET_CUSTOMERS } from "@/graphql/customer";
@@ -28,7 +28,12 @@ import { Loader2 } from "lucide-react";
 import { ticketSchema } from "@/lib/schemas";
 import { z } from "zod";
 
-type TicketFormValues = z.infer<typeof ticketSchema>;
+// Create a modified schema for edit mode
+const editTicketSchema = ticketSchema.extend({
+  assignedEmployee: z.string().nullable(),
+});
+
+type TicketFormValues = z.infer<typeof editTicketSchema>;
 
 interface CustomersData {
   customers: Array<{
@@ -57,7 +62,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
     useQuery<CustomersData>(GET_CUSTOMERS);
 
   const form = useForm<TicketFormValues>({
-    resolver: zodResolver(ticketSchema),
+    resolver: zodResolver(editTicketSchema),
     defaultValues: {
       title: ticket?.title || "",
       description: ticket?.description || "",
@@ -75,15 +80,12 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
     }
 
     try {
-      const ticketInput: TicketInput = {
-        title: values.title,
-        description: values.description,
-        priority: values.priority,
-        status: values.status,
-        customer: values.customer,
-        assignedEmployee: values.assignedEmployee,
+      const updateData = {
+        ...values,
+        assignedEmployee: values.assignedEmployee || null,
       };
-      await updateTicket(ticket.id, ticketInput);
+
+      await updateTicket(ticket.id, updateData);
       toast.success("Ticket updated successfully");
       router.push("/main/tickets");
       router.refresh();
@@ -113,12 +115,14 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
             name="title"
             label="Title"
             placeholder="Enter ticket title"
+            required
           />
           <CustomInput
             control={form.control}
             name="description"
             label="Description"
             placeholder="Enter ticket description"
+            required
           />
         </div>
 
@@ -128,7 +132,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
             name="priority"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority</FormLabel>
+                <FormLabel>
+                  Priority
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -153,7 +160,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>
+                  Status
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -181,7 +191,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
             name="customer"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Customer</FormLabel>
+                <FormLabel>
+                  Customer
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select
                   disabled={customersLoading}
                   onValueChange={field.onChange}

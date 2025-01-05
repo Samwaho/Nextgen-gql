@@ -3,30 +3,32 @@
 import { useMutation } from "@apollo/client";
 import { LOGIN_USER } from "@/graphql/mutations";
 import { toast } from "sonner";
+import { useRouter } from "next/router";
 
 export function LoginForm() {
-  const [loginUser, { loading }] = useMutation(LOGIN_USER);
+  const [loginUser] = useMutation(LOGIN_USER);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-
     try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
       const { data } = await loginUser({
         variables: {
-          email: formData.get("email"),
-          password: formData.get("password"),
+          email,
+          password,
         },
       });
 
-      if (data.login.success) {
-        toast.success(data.login.message);
-        // Handle successful login (e.g., redirect)
-      } else {
-        toast.error(data.login.message);
+      if (data?.login?.token) {
+        toast.success("Login successful!");
+        router.push("/main");
       }
-    } catch (error) {
-      toast.error("An error occurred during login");
+    } catch {
+      toast.error("Login failed. Please check your credentials.");
     }
   };
 

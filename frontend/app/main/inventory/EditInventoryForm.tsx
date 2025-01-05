@@ -12,22 +12,35 @@ import { toast } from "sonner";
 import CustomInput from "./CustomInput";
 import { Inventory, useInventory } from "@/graphql/inventory";
 
-type InventoryProps = z.infer<typeof inventorySchema> & { id: string };
+type FormValues = z.infer<typeof inventorySchema>;
 
 const EditInventoryForm = ({ inventory }: { inventory: Inventory }) => {
   const router = useRouter();
   const { updateInventory, isUpdating } = useInventory();
 
-  const form = useForm<InventoryProps>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(inventorySchema),
     defaultValues: {
-      ...inventory,
+      name: inventory.name || "",
+      description: inventory.description || "",
+      price: inventory.price || 0,
+      stock: inventory.stock || 0,
+      category: inventory.category || "",
     },
   });
 
-  const onSubmit = async (values: InventoryProps) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      await updateInventory(inventory.id, values);
+      // Convert numeric fields
+      const numericFields = ["price", "stock"] as const;
+      const formattedValues = {
+        ...values,
+        ...Object.fromEntries(
+          numericFields.map((field) => [field, Number(values[field])])
+        ),
+      };
+
+      await updateInventory(inventory.id, formattedValues);
       toast.success("Inventory item updated successfully.");
       router.refresh();
     } catch (error) {
@@ -45,12 +58,14 @@ const EditInventoryForm = ({ inventory }: { inventory: Inventory }) => {
             name="name"
             label="Item Name"
             placeholder="Enter item name"
+            required
           />
           <CustomInput
             control={form.control}
             name="category"
             label="Category"
             placeholder="Enter category"
+            required
           />
         </div>
 
@@ -59,6 +74,7 @@ const EditInventoryForm = ({ inventory }: { inventory: Inventory }) => {
           name="description"
           label="Description"
           placeholder="Enter item description"
+          required
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -68,6 +84,7 @@ const EditInventoryForm = ({ inventory }: { inventory: Inventory }) => {
             label="Price"
             placeholder="Enter price"
             type="number"
+            required
           />
           <CustomInput
             control={form.control}
@@ -75,6 +92,7 @@ const EditInventoryForm = ({ inventory }: { inventory: Inventory }) => {
             label="Stock"
             placeholder="Enter stock quantity"
             type="number"
+            required
           />
         </div>
 

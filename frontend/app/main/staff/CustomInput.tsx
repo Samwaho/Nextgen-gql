@@ -13,6 +13,7 @@ interface CustomInputProps<T extends FieldValues> {
   name: Path<T>;
   label: string;
   placeholder: string;
+  required?: boolean;
 }
 
 const CustomInput = <T extends FieldValues>({
@@ -20,6 +21,7 @@ const CustomInput = <T extends FieldValues>({
   name,
   label,
   placeholder,
+  required,
 }: CustomInputProps<T>) => {
   return (
     <FormField
@@ -27,12 +29,16 @@ const CustomInput = <T extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="dark:text-white">{label}</FormLabel>
+          <FormLabel className="dark:text-white">
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </FormLabel>
           <FormControl>
             <Input
               placeholder={placeholder}
               type={name === "password" ? "password" : "text"}
               {...field}
+              required={required}
             />
           </FormControl>
           <FormMessage />

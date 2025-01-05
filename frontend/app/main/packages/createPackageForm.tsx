@@ -27,18 +27,18 @@ const CreatePackageForm = () => {
       type: "",
       downloadSpeed: 0,
       uploadSpeed: 0,
-      burstDownload: 0,
-      burstUpload: 0,
-      thresholdDownload: 0,
-      thresholdUpload: 0,
-      burstTime: 0,
-      radiusProfile: "",
+      burstDownload: null,
+      burstUpload: null,
+      thresholdDownload: null,
+      thresholdUpload: null,
+      burstTime: null,
+      radiusProfile: null,
     },
   });
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // Convert string values to numbers for numeric fields
+      // Convert string values to numbers for numeric fields and handle null values
       const numericFields = [
         "price",
         "downloadSpeed",
@@ -53,7 +53,10 @@ const CreatePackageForm = () => {
       const formattedValues: PackageInput = {
         ...values,
         ...Object.fromEntries(
-          numericFields.map((field) => [field, Number(values[field])])
+          numericFields.map((field) => [
+            field,
+            values[field] !== null ? Number(values[field]) : null,
+          ])
         ),
       };
 
@@ -79,6 +82,7 @@ const CreatePackageForm = () => {
             name="name"
             label="Package Name"
             placeholder="Enter package name"
+            required
           />
           <CustomInput
             control={form.control}
@@ -86,6 +90,7 @@ const CreatePackageForm = () => {
             label="Price"
             placeholder="Enter price"
             type="number"
+            required
           />
         </div>
 
@@ -95,12 +100,14 @@ const CreatePackageForm = () => {
             name="bandwidth"
             label="Bandwidth"
             placeholder="Enter bandwidth in the format of 5M/5M"
+            required
           />
           <CustomInput
             control={form.control}
             name="type"
             label="Type"
             placeholder="Enter type"
+            required
           />
         </div>
 
@@ -111,6 +118,7 @@ const CreatePackageForm = () => {
             label="Download Speed"
             placeholder="Enter download speed"
             type="number"
+            required
           />
           <CustomInput
             control={form.control}
@@ -118,6 +126,7 @@ const CreatePackageForm = () => {
             label="Upload Speed"
             placeholder="Enter upload speed"
             type="number"
+            required
           />
         </div>
 

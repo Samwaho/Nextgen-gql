@@ -91,12 +91,15 @@ export default function CustomerForm() {
             name="name"
             label="Name"
             placeholder="Enter name"
+            required
           />
           <CustomInput
             control={form.control}
             name="email"
             label="Email"
             placeholder="Enter email"
+            type="email"
+            required
           />
         </div>
 
@@ -106,12 +109,14 @@ export default function CustomerForm() {
             name="address"
             label="Address"
             placeholder="Enter address"
+            required
           />
           <CustomInput
             control={form.control}
             name="phone"
             label="Phone"
             placeholder="Enter phone number"
+            required
           />
         </div>
 
@@ -121,6 +126,7 @@ export default function CustomerForm() {
             name="username"
             label="Username"
             placeholder="Enter username"
+            required
           />
           <CustomInput
             control={form.control}
@@ -128,6 +134,7 @@ export default function CustomerForm() {
             label="Password"
             placeholder="Enter password"
             type="password"
+            required
           />
         </div>
 
@@ -137,7 +144,10 @@ export default function CustomerForm() {
             name="package"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Package</FormLabel>
+                <FormLabel>
+                  Package
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select
                   disabled={packagesLoading}
                   onValueChange={field.onChange}
@@ -166,7 +176,10 @@ export default function CustomerForm() {
             name="expiry"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Expiry Date</FormLabel>
+                <FormLabel>
+                  Expiry Date
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Popover modal={true}>
                   <PopoverTrigger asChild>
                     <FormControl>

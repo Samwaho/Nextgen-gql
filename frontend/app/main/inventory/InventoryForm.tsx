@@ -31,7 +31,16 @@ export default function InventoryForm() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await createInventory(values);
+      // Convert numeric fields
+      const numericFields = ["price", "stock"] as const;
+      const formattedValues = {
+        ...values,
+        ...Object.fromEntries(
+          numericFields.map((field) => [field, Number(values[field])])
+        ),
+      };
+
+      await createInventory(formattedValues);
       toast.success("Inventory item created successfully");
       router.push("/main/inventory");
       router.refresh();
@@ -57,12 +66,14 @@ export default function InventoryForm() {
             name="name"
             label="Item Name"
             placeholder="Enter item name"
+            required
           />
           <CustomInput
             control={form.control}
             name="category"
             label="Category"
             placeholder="Enter category"
+            required
           />
         </div>
 
@@ -71,6 +82,7 @@ export default function InventoryForm() {
           name="description"
           label="Description"
           placeholder="Enter item description"
+          required
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -80,6 +92,7 @@ export default function InventoryForm() {
             label="Price"
             placeholder="Enter price"
             type="number"
+            required
           />
           <CustomInput
             control={form.control}
@@ -87,6 +100,7 @@ export default function InventoryForm() {
             label="Stock"
             placeholder="Enter stock quantity"
             type="number"
+            required
           />
         </div>
 

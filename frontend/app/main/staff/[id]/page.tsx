@@ -1,8 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { axiosHeaders } from "@/lib/actions";
-import { axiosInstance, dateFormat } from "@/lib/utils";
 import {
   MailIcon,
   PhoneIcon,
@@ -10,7 +8,6 @@ import {
   CalendarIcon,
   ClockIcon,
 } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 import {
   Dialog,
@@ -23,12 +20,9 @@ import {
 import EditStaffForm from "@/app/main/staff/EditStaffForm";
 
 const ViewStaff = async ({ params }: { params: { id: string } }) => {
-  const res = await axiosInstance.get(
-    `/staff/${params.id}`,
-    await axiosHeaders()
-  );
+  const res = await fetch(`/staff/${params.id}`);
 
-  const staff = res.data;
+  const staff = await res.json();
 
   return (
     <div className="mt-4">
@@ -37,7 +31,7 @@ const ViewStaff = async ({ params }: { params: { id: string } }) => {
           <span className="text-sm font-normal text-gray-500">page/ </span>
           Staff Details
         </h1>
-        <p className="text-sm text-gray-500">{dateFormat()}</p>
+        <p className="text-sm text-gray-500">{new Date().toLocaleDateString()}</p>
       </div>
 
       <div className="mt-6 bg-card_light dark:bg-card_dark rounded-xl shadow-md p-6">

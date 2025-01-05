@@ -59,12 +59,8 @@ export default function CreateTicketForm() {
   const onSubmit = async (values: TicketFormValues) => {
     try {
       const ticketInput: TicketInput = {
-        title: values.title,
-        description: values.description,
-        priority: values.priority,
-        status: values.status,
-        customer: values.customer,
-        assignedEmployee: values.assignedEmployee,
+        ...values,
+        assignedEmployee: values.assignedEmployee || null,
       };
       await createTicket(ticketInput);
       toast.success("Ticket created successfully");
@@ -88,12 +84,14 @@ export default function CreateTicketForm() {
             name="title"
             label="Title"
             placeholder="Enter ticket title"
+            required
           />
           <CustomInput
             control={form.control}
             name="description"
             label="Description"
             placeholder="Enter ticket description"
+            required
           />
         </div>
 
@@ -103,7 +101,10 @@ export default function CreateTicketForm() {
             name="priority"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority</FormLabel>
+                <FormLabel>
+                  Priority
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -128,7 +129,10 @@ export default function CreateTicketForm() {
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>
+                  Status
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -156,7 +160,10 @@ export default function CreateTicketForm() {
             name="customer"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Customer</FormLabel>
+                <FormLabel>
+                  Customer
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select
                   disabled={customersLoading}
                   onValueChange={field.onChange}

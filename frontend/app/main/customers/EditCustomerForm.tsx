@@ -43,6 +43,7 @@ const editCustomerSchema = customerSchema.extend({
     .string()
     .min(4, "Password must contain at least 4 characters")
     .optional(),
+  package: z.string().nullable(),
 });
 
 type FormValues = z.infer<typeof editCustomerSchema>;
@@ -93,17 +94,15 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
     }
 
     try {
-      const updateValues = {
-        name: values.name,
-        email: values.email,
-        address: values.address,
-        phone: values.phone,
-        username: values.username,
-        expiry: values.expiry,
-        package: values.package,
-        ...(values.password && { password: values.password }),
-      };
-      await updateCustomer(customer.id, updateValues);
+      // Only include fields that have values
+      const updateData = Object.fromEntries(
+        Object.entries(values).filter(([key, value]) => {
+          if (key === "package") return true; // Always include package field
+          return value !== "" && value !== null;
+        })
+      );
+
+      await updateCustomer(customer.id, updateData);
       toast.success("Customer updated successfully");
       router.push("/main/customers");
       router.refresh();
@@ -137,12 +136,15 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             name="name"
             label="Name"
             placeholder="Enter name"
+            required
           />
           <CustomInput
             control={form.control}
             name="email"
             label="Email"
             placeholder="Enter email"
+            type="email"
+            required
           />
         </div>
 
@@ -152,12 +154,14 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             name="address"
             label="Address"
             placeholder="Enter address"
+            required
           />
           <CustomInput
             control={form.control}
             name="phone"
             label="Phone"
             placeholder="Enter phone number"
+            required
           />
         </div>
 
@@ -167,12 +171,13 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             name="username"
             label="Username"
             placeholder="Enter username"
+            required
           />
           <CustomInput
             control={form.control}
             name="password"
             label="Password"
-            placeholder="Enter password"
+            placeholder="Enter new password"
             type="password"
           />
         </div>
@@ -183,7 +188,10 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             name="package"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Package</FormLabel>
+                <FormLabel>
+                  Package
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Select
                   disabled={packagesLoading}
                   onValueChange={field.onChange}
@@ -212,7 +220,10 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             name="expiry"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Expiry Date</FormLabel>
+                <FormLabel>
+                  Expiry Date
+                  <span className="text-red-500 ml-1">*</span>
+                </FormLabel>
                 <Popover modal={true}>
                   <PopoverTrigger asChild>
                     <FormControl>

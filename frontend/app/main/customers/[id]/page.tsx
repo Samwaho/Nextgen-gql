@@ -1,31 +1,32 @@
 "use client";
 
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  CalendarIcon,
   MailIcon,
-  MapPinIcon,
-  PackageIcon,
   PhoneIcon,
   UserIcon,
+  CalendarIcon,
+  PackageIcon,
+  MapPinIcon,
   PencilIcon,
   TrashIcon,
   RadioIcon,
   Loader2,
   ArrowLeft,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useQuery } from "@apollo/client";
 import { GET_CUSTOMER, Customer, useCustomer } from "@/graphql/customer";
 import { GET_PACKAGES, Package } from "@/graphql/package";
@@ -34,13 +35,14 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface ViewCustomerProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-const ViewCustomer = ({ params }: ViewCustomerProps) => {
+export default function ViewCustomer({ params }: ViewCustomerProps) {
   const router = useRouter();
+  const resolvedParams = React.use(params);
   const { data, loading } = useQuery<{ customer: Customer }>(GET_CUSTOMER, {
-    variables: { id: params.id },
+    variables: { id: resolvedParams.id },
   });
 
   const { data: packagesData } = useQuery<{ packages: Package[] }>(
@@ -50,9 +52,9 @@ const ViewCustomer = ({ params }: ViewCustomerProps) => {
 
   const { deleteCustomer } = useCustomer();
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     try {
-      await deleteCustomer(params.id);
+      deleteCustomer(resolvedParams.id);
       toast.success("Customer deleted successfully");
       router.push("/main/customers");
     } catch (error) {
@@ -239,6 +241,4 @@ const ViewCustomer = ({ params }: ViewCustomerProps) => {
       </div>
     </div>
   );
-};
-
-export default ViewCustomer;
+}

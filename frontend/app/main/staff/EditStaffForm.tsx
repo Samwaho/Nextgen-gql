@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -11,30 +10,37 @@ import {
   FormLabel,
   FormMessage,
 } from "../../../components/ui/form";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import CustomInput from "./CustomInput";
+import { Employee, useEmployee } from "@/graphql/employee";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { staffSchema } from "@/lib/schemas";
+import { z } from "zod";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../../components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../../../components/ui/command";
-import { Employee, EmployeeUpdateInput, useEmployee } from "@/graphql/employee";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Create a partial version of staffSchema where all fields are optional except role
+const editStaffSchema = staffSchema.partial().required({ role: true });
+type FormData = z.infer<typeof editStaffSchema>;
+
+const roles = [
+  { label: "Admin", value: "admin" },
+  { label: "Employee", value: "employee" },
+] as const;
 
 const EditStaffForm = ({ staff }: { staff: Employee }) => {
   const router = useRouter();
   const { updateEmployee, isUpdating } = useEmployee();
 
-  const form = useForm<EmployeeUpdateInput>({
+  const form = useForm<FormData>({
+    resolver: zodResolver(editStaffSchema),
     defaultValues: {
       name: staff.name,
       email: staff.email,
@@ -44,9 +50,14 @@ const EditStaffForm = ({ staff }: { staff: Employee }) => {
     },
   });
 
-  const onSubmit = async (values: EmployeeUpdateInput) => {
+  const onSubmit = async (values: FormData) => {
     try {
-      await updateEmployee(staff.id, values);
+      // Only include fields that have values
+      const updateData = Object.fromEntries(
+        Object.entries(values).filter(([, value]) => value !== "")
+      );
+
+      await updateEmployee(staff.id, updateData);
       toast.success("Staff member updated successfully.");
       router.refresh();
     } catch (error) {
@@ -64,12 +75,14 @@ const EditStaffForm = ({ staff }: { staff: Employee }) => {
             name="username"
             label="Username"
             placeholder="EXAMPLE09"
+            required
           />
           <CustomInput
             control={form.control}
             name="name"
             label="Full Name"
             placeholder="John Doe"
+            required
           />
         </div>
 
@@ -79,12 +92,14 @@ const EditStaffForm = ({ staff }: { staff: Employee }) => {
             name="email"
             label="Email"
             placeholder="jd@gmail.com"
+            required
           />
           <CustomInput
             control={form.control}
             name="phone"
             label="Phone Number"
             placeholder="Enter Your Phone Number"
+            required
           />
         </div>
 
@@ -93,57 +108,25 @@ const EditStaffForm = ({ staff }: { staff: Employee }) => {
             control={form.control}
             name="role"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <FormLabel>Role</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "w-full justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value || "Select Role"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search role..." />
-                      <CommandList>
-                        <CommandEmpty>No role found.</CommandEmpty>
-                        <CommandGroup>
-                          {["admin", "employee"].map((role) => (
-                            <CommandItem
-                              value={role}
-                              key={role}
-                              onSelect={() => {
-                                form.setValue(
-                                  "role",
-                                  role as "admin" | "employee"
-                                );
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  role === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {role}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

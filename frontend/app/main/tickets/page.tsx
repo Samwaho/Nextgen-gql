@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -22,16 +23,37 @@ import {
 } from "@/components/ui/select";
 import CreateTicketForm from "@/app/main/tickets/CreateTicketForm";
 import EditTicketForm from "@/app/main/tickets/EditTicketForm";
-import { Ticket, Pencil, User, Clock, UserCircle2 } from "lucide-react";
+import {
+  Ticket,
+  Pencil,
+  User,
+  Clock,
+  UserCircle2,
+  Trash2,
+  CalendarDays,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_TICKETS, UPDATE_TICKET } from "@/graphql/ticket";
+import { GET_TICKETS, UPDATE_TICKET, useTicket } from "@/graphql/ticket";
 import { GET_EMPLOYEES, Employee } from "@/graphql/employee";
-import { format, isValid, parseISO } from "date-fns";
+import {
+  format,
+  isValid,
+  parseISO,
+  startOfToday,
+  startOfYesterday,
+  subDays,
+  isAfter,
+  isBefore,
+  endOfDay,
+} from "date-fns";
 import { GET_CUSTOMERS, Customer } from "@/graphql/customer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
+
+type DateFilter = "all" | "today" | "yesterday" | "last7days" | "last30days";
 
 export default function TicketsPage() {
   const {
@@ -53,12 +75,50 @@ export default function TicketsPage() {
 
   const [ticketList, setTicketList] = useState<TicketProps[]>([]);
   const [draggedTicket, setDraggedTicket] = useState<TicketProps | null>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
 
   useEffect(() => {
     if (ticketsData?.tickets) {
-      setTicketList(ticketsData.tickets);
+      let filteredTickets = [...ticketsData.tickets];
+
+      switch (dateFilter) {
+        case "today":
+          filteredTickets = filteredTickets.filter((ticket) => {
+            const ticketDate = parseISO(ticket.createdAt);
+            return (
+              isAfter(ticketDate, startOfToday()) &&
+              isBefore(ticketDate, endOfDay(new Date()))
+            );
+          });
+          break;
+        case "yesterday":
+          filteredTickets = filteredTickets.filter((ticket) => {
+            const ticketDate = parseISO(ticket.createdAt);
+            return (
+              isAfter(ticketDate, startOfYesterday()) &&
+              isBefore(ticketDate, startOfToday())
+            );
+          });
+          break;
+        case "last7days":
+          filteredTickets = filteredTickets.filter((ticket) => {
+            const ticketDate = parseISO(ticket.createdAt);
+            return isAfter(ticketDate, subDays(startOfToday(), 7));
+          });
+          break;
+        case "last30days":
+          filteredTickets = filteredTickets.filter((ticket) => {
+            const ticketDate = parseISO(ticket.createdAt);
+            return isAfter(ticketDate, subDays(startOfToday(), 30));
+          });
+          break;
+        default:
+          break;
+      }
+
+      setTicketList(filteredTickets);
     }
-  }, [ticketsData]);
+  }, [ticketsData, dateFilter]);
 
   useEffect(() => {
     if (error) {
@@ -233,7 +293,27 @@ export default function TicketsPage() {
       </div>
 
       <div className="flex items-center justify-between mt-6">
-        <h4 className="text-lg font-semibold">Tickets Table</h4>
+        <div className="flex items-center gap-4">
+          <h4 className="text-lg font-semibold">Tickets Table</h4>
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-gray-500" />
+            <Select
+              value={dateFilter}
+              onValueChange={(value: DateFilter) => setDateFilter(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="last7days">Last 7 Days</SelectItem>
+                <SelectItem value="last30days">Last 30 Days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <Dialog>
           <DialogTrigger asChild>
             <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
@@ -344,6 +424,25 @@ function TicketColumn({
   const { data: customersData } = useQuery<{ customers: Customer[] }>(
     GET_CUSTOMERS
   );
+  const { deleteTicket } = useTicket();
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteTicket = async () => {
+    if (!ticketToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteTicket(ticketToDelete);
+      toast.success("Ticket deleted successfully");
+      setTicketToDelete(null);
+    } catch (error) {
+      toast.error("Failed to delete ticket");
+      console.error("Error deleting ticket:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const [updateTicket] = useMutation(UPDATE_TICKET, {
     onCompleted: (data) => {
@@ -460,27 +559,79 @@ function TicketColumn({
                       {ticket.description}
                     </p>
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Ticket</DialogTitle>
-                        <DialogDescription>
-                          Update the ticket details below
-                        </DialogDescription>
-                      </DialogHeader>
-                      <EditTicketForm ticket={ticketData} />
-                    </DialogContent>
-                  </Dialog>
+                  <div className="flex gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Ticket</DialogTitle>
+                          <DialogDescription>
+                            Update the ticket details below
+                          </DialogDescription>
+                        </DialogHeader>
+                        <EditTicketForm ticket={ticketData} />
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog
+                      open={ticketToDelete === ticket.id}
+                      onOpenChange={(open) => !open && setTicketToDelete(null)}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTicketToDelete(ticket.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Ticket</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to delete this ticket? This
+                            action cannot be undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => setTicketToDelete(null)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={handleDeleteTicket}
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Deleting...
+                              </>
+                            ) : (
+                              "Delete"
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-0">

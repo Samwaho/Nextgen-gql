@@ -1,4 +1,4 @@
-import { Control } from "react-hook-form";
+import { Control, FieldValues, Path } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -7,39 +7,41 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { packageSchema } from "@/lib/schemas";
-import { z } from "zod";
 
-type PackageFormValues = z.infer<typeof packageSchema>;
-
-interface Props {
-  control: Control<PackageFormValues>;
-  name: keyof PackageFormValues;
+interface CustomInputProps<T extends FieldValues> {
+  control: Control<T>;
+  name: Path<T>;
   label: string;
   placeholder: string;
   type?: "text" | "number";
+  required?: boolean;
 }
 
-const CustomInput = ({
+const CustomInput = <T extends FieldValues>({
   control,
   name,
   label,
   placeholder,
   type = "text",
-}: Props) => {
+  required,
+}: CustomInputProps<T>) => {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="dark:text-white">{label}</FormLabel>
+          <FormLabel className="dark:text-white">
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </FormLabel>
           <FormControl>
             <Input
               placeholder={placeholder}
               type={type}
               {...field}
               value={field.value ?? ""}
+              required={required}
             />
           </FormControl>
           <FormMessage />

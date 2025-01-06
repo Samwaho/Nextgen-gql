@@ -130,33 +130,6 @@ export const GET_CURRENT_USER = gql`
   }
 `;
 
-// Cookie utilities
-const getCookieClient = (name: string): string | null => {
-  try {
-    return (
-      document.cookie
-        .split("; ")
-        .find((row) => row.startsWith(`${name}=`))
-        ?.split("=")[1] || null
-    );
-  } catch {
-    return null;
-  }
-};
-
-const setCookieClient = (
-  name: string,
-  value: string,
-  maxAge: number = 7 * 24 * 60 * 60
-): void => {
-  const secure = process.env.NODE_ENV === "production" ? "secure; " : "";
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; ${secure}samesite=strict`;
-};
-
-const removeCookieClient = (name: string): void => {
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-};
-
 // Token Management
 export const isValidToken = (token: string): boolean => {
   try {
@@ -174,9 +147,11 @@ export const setAuthToken = (token: string): boolean => {
     if (!isValidToken(token)) return false;
     if (typeof window === "undefined") return false;
 
-    setCookieClient("token", token);
-    const savedToken = getCookieClient("token");
-    return savedToken === token;
+    // Set cookie with SameSite and Secure attributes for HTTPS
+    document.cookie = `token=${token}; path=/; max-age=${
+      7 * 24 * 60 * 60
+    }; SameSite=Strict; Secure`;
+    return true;
   } catch (error) {
     console.error("Error saving token:", error);
     return false;
@@ -186,7 +161,13 @@ export const setAuthToken = (token: string): boolean => {
 export const getAuthToken = (): string | null => {
   try {
     if (typeof window === "undefined") return null;
-    return getCookieClient("token");
+
+    const cookies = document.cookie.split(";").map((c) => c.trim());
+    const tokenCookie = cookies.find((cookie) => cookie.startsWith("token="));
+    if (!tokenCookie) return null;
+
+    const token = tokenCookie.split("=")[1];
+    return token || null;
   } catch (error) {
     console.error("Error getting token:", error);
     return null;
@@ -196,7 +177,8 @@ export const getAuthToken = (): string | null => {
 export const removeAuthToken = (): void => {
   try {
     if (typeof window !== "undefined") {
-      removeCookieClient("token");
+      document.cookie =
+        "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict; Secure";
     }
   } catch (error) {
     console.error("Error removing token:", error);

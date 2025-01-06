@@ -1,14 +1,15 @@
 "use client";
+
+import React, { Suspense } from "react";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import AuroraBackground from "@/components/AuroraBackground";
 import SignInForm from "@/app/(auth)/sign-in/SignInForm";
 import { Button } from "@/components/ui/button";
 import { LockIcon, Chrome } from "lucide-react";
 import Link from "next/link";
 
-const SignIn = () => {
+function SignInContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -34,7 +35,7 @@ const SignIn = () => {
   };
 
   return (
-    <AuroraBackground>
+    
       <section className="flex min-h-[100dvh] items-center justify-center px-4 py-12">
         <div className="mx-auto w-full max-w-md space-y-8 glass dark:glass-dark p-8 rounded-lg">
           <div className="text-center">
@@ -79,8 +80,14 @@ const SignIn = () => {
           </div>
         </div>
       </section>
-    </AuroraBackground>
+  
   );
-};
+}
 
-export default SignIn;
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInContent />
+    </Suspense>
+  );
+}

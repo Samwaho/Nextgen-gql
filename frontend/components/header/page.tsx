@@ -8,9 +8,7 @@ import {
 } from "../ui/tooltip";
 import MobileSidebar from "../sidebar/MobileSidebar";
 import { Props } from "@/lib/props";
-import { Input } from "../ui/input";
 import { Settings } from "lucide-react";
-import Notifications from "../notifications/page";
 
 const Header: React.FC<Props> = ({ loggedInUser }) => {
   return (
@@ -18,12 +16,7 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
       <div className="block lg:hidden">
         <MobileSidebar loggedInUser={loggedInUser} />
       </div>
-      <Input
-        className="rounded-lg w-[200px] md:w-[250px] h-8"
-        placeholder="Search..."
-      />
       <div className="flex gap-2 items-center">
-        <Notifications />
 
         <TooltipProvider>
           <Tooltip>

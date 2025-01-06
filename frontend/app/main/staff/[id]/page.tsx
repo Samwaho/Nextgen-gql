@@ -1,3 +1,6 @@
+"use client";
+
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +10,9 @@ import {
   UserIcon,
   CalendarIcon,
   ClockIcon,
+  Loader2,
+  ArrowLeft,
 } from "lucide-react";
-import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,22 +20,79 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import EditStaffForm from "@/app/main/staff/EditStaffForm";
+import { useQuery } from "@apollo/client";
+import { GET_EMPLOYEE, Employee, useEmployee } from "@/graphql/employee";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-const ViewStaff = async ({ params }: { params: { id: string } }) => {
-  const res = await fetch(`/staff/${params.id}`);
+interface ViewStaffProps {
+  params: Promise<{ id: string }>;
+}
 
-  const staff = await res.json();
+export default function ViewStaff({ params }: ViewStaffProps) {
+  const router = useRouter();
+  const resolvedParams = React.use(params);
+  const { data, loading } = useQuery<{ staffMember: Employee }>(GET_EMPLOYEE, {
+    variables: { id: resolvedParams.id },
+  });
+
+  const { deleteEmployee } = useEmployee();
+
+  const handleDelete = async () => {
+    try {
+      await deleteEmployee(resolvedParams.id);
+      toast.success("Staff member deleted successfully");
+      router.push("/main/staff");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete staff member");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-10rem)] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (!data?.staffMember) {
+    return (
+      <div className="h-[calc(100vh-10rem)] flex flex-col items-center justify-center gap-4">
+        <h2 className="text-2xl font-semibold">Staff member not found</h2>
+        <Button onClick={() => router.push("/main/staff")}>
+          Back to Staff
+        </Button>
+      </div>
+    );
+  }
+
+  const staff = data.staffMember;
 
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">
-          <span className="text-sm font-normal text-gray-500">page/ </span>
-          Staff Details
-        </h1>
-        <p className="text-sm text-gray-500">{new Date().toLocaleDateString()}</p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/main/staff")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-bold">
+            <span className="text-sm font-normal text-gray-500">page/ </span>
+            Staff Details
+          </h1>
+        </div>
+        <p className="text-sm text-gray-500">
+          {new Date().toLocaleDateString()}
+        </p>
       </div>
 
       <div className="mt-6 bg-card_light dark:bg-card_dark rounded-xl shadow-md p-6">
@@ -81,13 +142,19 @@ const ViewStaff = async ({ params }: { params: { id: string } }) => {
               <div className="flex items-center gap-3">
                 <CalendarIcon className="text-gray-500" size={20} />
                 <span>
-                  Created: {new Date(staff.createdAt).toLocaleDateString()}
+                  Created:{" "}
+                  {staff.createdAt
+                    ? new Date(staff.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <ClockIcon className="text-gray-500" size={20} />
                 <span>
-                  Last Updated: {new Date(staff.updatedAt).toLocaleDateString()}
+                  Last Updated:{" "}
+                  {staff.updatedAt
+                    ? new Date(staff.updatedAt).toLocaleDateString()
+                    : "N/A"}
                 </span>
               </div>
             </CardContent>
@@ -109,11 +176,32 @@ const ViewStaff = async ({ params }: { params: { id: string } }) => {
               <EditStaffForm staff={staff} />
             </DialogContent>
           </Dialog>
-          <Button variant="destructive">Delete Staff</Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive">Delete Staff</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Are you absolutely sure?</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  staff member and remove their data from our servers.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button variant="destructive" onClick={handleDelete}>
+                    Yes, delete
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
   );
-};
-
-export default ViewStaff;
+}

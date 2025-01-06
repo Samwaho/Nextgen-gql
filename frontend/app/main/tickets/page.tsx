@@ -258,7 +258,7 @@ export default function TicketsPage() {
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">
+        <h1 className="text-lg md:text-xl font-bold">
           <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
             page/{" "}
           </span>
@@ -269,7 +269,7 @@ export default function TicketsPage() {
         </p>
       </div>
 
-      <div className="flex gap-4 mt-6 flex-wrap">
+      <div className="flex gap-2 sm:gap-4 mt-4 sm:mt-6 flex-wrap">
         <TicketCard
           title="Total Tickets"
           count={totalTickets}
@@ -292,16 +292,16 @@ export default function TicketsPage() {
         />
       </div>
 
-      <div className="flex items-center justify-between mt-6">
-        <div className="flex items-center gap-4">
-          <h4 className="text-lg font-semibold">Tickets Table</h4>
-          <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 space-y-3 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+          <h4 className="text-base md:text-lg font-semibold">Tickets Table</h4>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <CalendarDays className="h-4 w-4 text-gray-500" />
             <Select
               value={dateFilter}
               onValueChange={(value: DateFilter) => setDateFilter(value)}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by date" />
               </SelectTrigger>
               <SelectContent>
@@ -316,7 +316,7 @@ export default function TicketsPage() {
         </div>
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+            <Button className="bg-gradient-custom flex items-center gap-2 px-3 py-2 text-sm md:text-base text-white rounded-md w-auto sm:w-auto">
               <Ticket className="h-4 w-4" />
               <p>Add New</p>
             </Button>
@@ -333,8 +333,8 @@ export default function TicketsPage() {
         </Dialog>
       </div>
       <div className="mt-4">
-        <div className="mt-2 px-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
             <TicketColumn
               title="To Do"
               tickets={ticketList.filter((ticket) => ticket.status === "open")}
@@ -377,15 +377,17 @@ function TicketCard({
   description: string;
 }) {
   return (
-    <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+    <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-1.5 sm:gap-2 shadow-md p-2 sm:p-3 flex-1 min-w-[120px] sm:min-w-[150px] max-w-[200px] sm:max-w-[250px]">
       <div className="flex justify-between items-start">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-        <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-          <Ticket className="h-4 w-4" />
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          {title}
+        </p>
+        <div className="p-0.5 sm:p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
+          <Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
         </div>
       </div>
-      <h1 className="font-bold text-lg">{count}</h1>
-      <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+      <h1 className="font-bold text-base sm:text-lg">{count}</h1>
+      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
         {description}
       </p>
     </div>
@@ -483,7 +485,7 @@ function TicketColumn({
   return (
     <div className="" onDragOver={handleDragOver} onDrop={handleDrop}>
       <div className="bg-card_light dark:bg-card_dark rounded-t-lg p-2">
-        <h2 className="text-lg font-semibold text-fuchsia-500 dark:text-fuchsia-400">
+        <h2 className="text-base sm:text-lg font-semibold text-fuchsia-500 dark:text-fuchsia-400">
           {title}
         </h2>
       </div>
@@ -520,14 +522,14 @@ function TicketColumn({
           return (
             <Card
               key={ticket.id}
-              className="mb-4 cursor-move hover:shadow-md transition-shadow"
+              className="mb-3 sm:mb-4 cursor-move hover:shadow-md transition-shadow"
               draggable
               onDragStart={(e) => handleDragStart(ticket, e)}
             >
-              <CardHeader className="p-4">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+              <CardHeader className="p-3 sm:p-4">
+                <div className="flex justify-between items-start gap-2 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                       <Badge
                         className={
                           ticket.priority === "high"
@@ -552,14 +554,14 @@ function TicketColumn({
                         {ticket.status.replace("-", " ")}
                       </Badge>
                     </div>
-                    <h3 className="font-semibold text-lg mb-1">
+                    <h3 className="font-semibold text-base sm:text-lg mb-1 truncate">
                       {ticket.title}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                       {ticket.description}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -635,50 +637,34 @@ function TicketColumn({
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatTicketDate(ticket.createdAt)}</span>
-                  </div>
+                <div className="mt-4 space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
-                    <UserCircle2 className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500">
-                      Customer:{" "}
-                      <span className="font-medium text-gray-700 dark:text-gray-300">
-                        {customer ? (
-                          <>
-                            {customer.username} - {customer.name}
-                            <span className="text-xs text-gray-500 ml-1">
-                              ({customer.email})
-                            </span>
-                          </>
-                        ) : (
-                          "Loading..."
-                        )}
-                      </span>
-                    </span>
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
+                      {customer
+                        ? `${customer.name} (${customer.email})`
+                        : "Loading customer..."}
+                    </p>
                   </div>
+
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-500" />
+                    <UserCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                     <Select
-                      value={
-                        assignedEmployee ? assignedEmployee.id : "unassigned"
+                      value={assignedEmployee?.id || "unassigned"}
+                      onValueChange={(value) =>
+                        handleAssignEmployee(
+                          ticket.id,
+                          value === "unassigned" ? null : value
+                        )
                       }
-                      onValueChange={(value) => {
-                        const newEmployeeId =
-                          value === "unassigned" ? null : value;
-                        handleAssignEmployee(ticket.id, newEmployeeId);
-                      }}
                     >
-                      <SelectTrigger className="h-8 w-[200px]">
-                        <SelectValue>
-                          {assignedEmployee
-                            ? assignedEmployee.name
-                            : "Unassigned"}
+                      <SelectTrigger className="h-7 sm:h-8 text-xs sm:text-sm">
+                        <SelectValue placeholder="Assign employee">
+                          {assignedEmployee?.name || "Unassigned"}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassign</SelectItem>
                         {employeesData?.staffMembers?.map(
                           (employee: Employee) => (
                             <SelectItem key={employee.id} value={employee.id}>
@@ -688,6 +674,13 @@ function TicketColumn({
                         )}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {formatTicketDate(ticketData.createdAt)}
+                    </p>
                   </div>
                 </div>
               </CardContent>

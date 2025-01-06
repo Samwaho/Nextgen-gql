@@ -1,5 +1,4 @@
 "use client";
-import AuroraBackground from "@/components/AuroraBackground";
 import SignUpForm from "./SignUpForm";
 import { Button } from "@/components/ui/button";
 import { Chrome } from "lucide-react";
@@ -12,8 +11,7 @@ const SignUp = () => {
   };
 
   return (
-    <AuroraBackground>
-      <section className="flex min-h-[100dvh] items-center justify-center px-4 py-12">
+    <section className="flex min-h-[100dvh] items-center justify-center px-4 py-12">
         <div className="mx-auto w-full max-w-md space-y-8 glass dark:glass-dark p-8 rounded-lg">
           <div className="text-center">
             <div className="mx-auto h-12 w-12 rounded-full bg-fuchsia-100 flex items-center justify-center">
@@ -57,7 +55,7 @@ const SignUp = () => {
           </div>
         </div>
       </section>
-    </AuroraBackground>
+    
   );
 };
 

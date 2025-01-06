@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   nginx:
@@ -15,8 +14,8 @@ services:
     build: ./backend
     expose:
       - "8000"
-    environment:
-      - MONGODB_URL=${MONGODB_URL}
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/app
     networks:
@@ -26,6 +25,8 @@ services:
     build: ./frontend
     expose:
       - "3000"
+    env_file:
+      - ./frontend/.env
     volumes:
       - ./frontend:/app
       - /app/node_modules

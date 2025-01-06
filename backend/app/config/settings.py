@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     # CORS Settings
     CORS_ORIGINS: list[str] = [
         "http://localhost:3000",
-        "https://yourdomain.com"
+        "https://6b2bk651-80.uks1.devtunnels.ms"
     ]
     
     # API and Frontend URLs with ports

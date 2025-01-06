@@ -3,12 +3,13 @@ import {
   InMemoryCache,
   createHttpLink,
   from,
+  FetchPolicy,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { getAuthToken, formatAuthHeader } from "@/graphql/auth";
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql",
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "/graphql",
   credentials: "include",
 });
 
@@ -26,18 +27,21 @@ const createApolloClient = (serverSide = false, serverSideToken?: string) => {
     }
 
     // For client-side, get token from cookie
-    if (!serverSide) {
-      const token = await getAuthToken();
+    const token = await getAuthToken();
+    if (!token) {
       return {
-        headers: {
-          ...headers,
-          ...(token ? { authorization: formatAuthHeader(token) } : {}),
-        },
+        headers,
         credentials: "include",
       };
     }
 
-    return { headers, credentials: "include" };
+    return {
+      headers: {
+        ...headers,
+        authorization: formatAuthHeader(token),
+      },
+      credentials: "include",
+    };
   });
 
   return new ApolloClient({
@@ -45,10 +49,12 @@ const createApolloClient = (serverSide = false, serverSideToken?: string) => {
     cache: new InMemoryCache(),
     defaultOptions: {
       watchQuery: {
-        fetchPolicy: "network-only",
+        fetchPolicy: "network-only" as FetchPolicy,
+        errorPolicy: "all",
       },
       query: {
-        fetchPolicy: "network-only",
+        fetchPolicy: "network-only" as FetchPolicy,
+        errorPolicy: "all",
       },
     },
     ssrMode: serverSide,

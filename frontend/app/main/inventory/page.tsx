@@ -4,20 +4,12 @@ import React from "react";
 import { columns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import CreateInventoryForm from "@/app/main/inventory/InventoryForm";
 import { formatDate } from "@/lib/utils";
 import { useQuery } from "@apollo/client";
 import { GET_INVENTORIES, Inventory } from "@/graphql/inventory";
 import { Package, PackageOpen, Warehouse, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 function LoadingSkeleton() {
   return (
@@ -130,23 +122,12 @@ export default function InventoryPage() {
 
           <div className="flex items-center justify-between mt-6">
             <h4 className="text-lg font-semibold">Inventory Table</h4>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
-                  <Plus size={16} />
-                  <p>Add New</p>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Inventory Item</DialogTitle>
-                  <DialogDescription>
-                    Fill in the fields below to add a new inventory item
-                  </DialogDescription>
-                </DialogHeader>
-                <CreateInventoryForm />
-              </DialogContent>
-            </Dialog>
+            <Link href="/main/inventory/new">
+              <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+                <Plus size={16} />
+                <p>Add New</p>
+              </Button>
+            </Link>
           </div>
           <div className="mt-4">
             <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">

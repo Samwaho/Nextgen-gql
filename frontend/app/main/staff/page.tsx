@@ -4,20 +4,12 @@ import React from "react";
 import { columns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import CreateStaffForm from "@/app/main/staff/StaffForm";
 import { formatDate } from "@/lib/utils";
 import { UserCog, Users, UserPlus } from "lucide-react";
 import { useQuery } from "@apollo/client";
 import { Employee, GET_EMPLOYEES } from "@/graphql/employee";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 export default function StaffPage() {
   const { data, loading } = useQuery<{ staffMembers: Employee[] }>(
@@ -124,23 +116,12 @@ export default function StaffPage() {
 
       <div className="flex items-center justify-between mt-6">
         <h4 className="text-lg font-semibold">Staff Table</h4>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
-              <UserPlus size={16} />
-              <p>Add New</p>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Staff Member</DialogTitle>
-              <DialogDescription>
-                Fill in the fields below to add a new staff member
-              </DialogDescription>
-            </DialogHeader>
-            <CreateStaffForm />
-          </DialogContent>
-        </Dialog>
+        <Link href="/main/staff/new">
+          <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+            <UserPlus size={16} />
+            <p>Add New</p>
+          </Button>
+        </Link>
       </div>
       <div className="mt-4">
         <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">

@@ -17,7 +17,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import EditStaffForm from "@/app/main/staff/EditStaffForm";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Pencil, Trash2, Mail, Phone } from "lucide-react";
 import Link from "next/link";
@@ -25,11 +24,7 @@ import { toast } from "sonner";
 import { Employee, useEmployee } from "@/graphql/employee";
 import { useRouter } from "next/navigation";
 
-interface ActionsCellProps {
-  employee: Employee;
-}
-
-function ActionsCell({ employee }: ActionsCellProps) {
+function ActionsCell({ employee }: { employee: Employee }) {
   const router = useRouter();
   const { deleteEmployee } = useEmployee();
 
@@ -58,29 +53,19 @@ function ActionsCell({ employee }: ActionsCellProps) {
           </Tooltip>
         </TooltipProvider>
       </Link>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="ghost">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Pencil size={16} />
-                </TooltipTrigger>
-                <TooltipContent>Edit staff member</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Staff Member</DialogTitle>
-            <DialogDescription>
-              Edit the fields below to update the staff member
-            </DialogDescription>
-          </DialogHeader>
-          <EditStaffForm staff={employee} />
-        </DialogContent>
-      </Dialog>
+
+      <Link href={`/main/staff/${employee.id}/edit`}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="ghost">
+                <Pencil size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit staff member</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Link>
 
       <Dialog>
         <DialogTrigger asChild>

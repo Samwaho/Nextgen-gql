@@ -33,9 +33,10 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfDay, addDays } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { TimePicker } from "@/components/shared/time-picker";
+import { useEffect, useState } from "react";
 
 type FormValues = z.infer<typeof customerSchema>;
 
@@ -48,6 +49,13 @@ export default function CustomerForm() {
   const { createCustomer, isCreating } = useCustomer();
   const { data: packagesData, loading: packagesLoading } =
     useQuery<PackagesData>(GET_PACKAGES);
+  const [mounted, setMounted] = useState(false);
+
+  // Set initial expiry date to tomorrow at current time
+  const initialExpiryDate = addDays(startOfDay(new Date()), 1);
+  initialExpiryDate.setHours(new Date().getHours());
+  initialExpiryDate.setMinutes(new Date().getMinutes());
+  initialExpiryDate.setSeconds(0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(customerSchema),
@@ -58,10 +66,15 @@ export default function CustomerForm() {
       phone: "",
       username: "",
       password: "",
-      expiry: new Date().toISOString(),
+      expiry: initialExpiryDate.toISOString(),
       package: null,
     },
   });
+
+  // Only show the form after first mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -77,6 +90,10 @@ export default function CustomerForm() {
       }
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Form {...form}>
@@ -186,18 +203,20 @@ export default function CustomerForm() {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal truncate",
                           !field.value && "text-muted-foreground"
                         )}
                         type="button"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {field.value ? (
-                          format(new Date(field.value), "PPP HH:mm:ss")
+                          <span className="block truncate">
+                            {format(new Date(field.value), "MMM d, yyyy HH:mm")}
+                          </span>
                         ) : (
                           <span>Pick a date</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50 shrink-0" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -216,12 +235,13 @@ export default function CustomerForm() {
                             : new Date();
                           date.setHours(currentValue.getHours());
                           date.setMinutes(currentValue.getMinutes());
-                          date.setSeconds(currentValue.getSeconds());
+                          date.setSeconds(0); // Always set seconds to 0
                           field.onChange(date.toISOString());
                         }
                       }}
                       disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
+                        date < startOfDay(new Date()) ||
+                        date < new Date("1900-01-01")
                       }
                       initialFocus
                     />
@@ -229,6 +249,7 @@ export default function CustomerForm() {
                       <TimePicker
                         setDate={(date) => {
                           if (date) {
+                            date.setSeconds(0); // Always set seconds to 0
                             field.onChange(date.toISOString());
                           }
                         }}

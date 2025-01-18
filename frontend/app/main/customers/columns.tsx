@@ -17,7 +17,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import EditCustomerForm from "@/app/main/customers/EditCustomerForm";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -58,29 +57,19 @@ const ActionsCell = ({ customer }: ActionsCellProps) => {
           </Tooltip>
         </TooltipProvider>
       </Link>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="ghost">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Pencil size={16} />
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Customer</DialogTitle>
-            <DialogDescription>
-              Edit the fields below to update the customer
-            </DialogDescription>
-          </DialogHeader>
-          <EditCustomerForm customer={customer} />
-        </DialogContent>
-      </Dialog>
+      
+      <Link href={`/main/customers/${customer.id}/edit`}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="ghost">
+                <Pencil size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Link>
 
       <Dialog>
         <DialogTrigger asChild>

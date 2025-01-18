@@ -101,6 +101,29 @@ export const DELETE_TICKET = gql`
   }
 `;
 
+export const UPDATE_TICKET_STATUS = gql`
+  mutation UpdateTicketStatus($id: String!, $status: String!, $assignedEmployee: String) {
+    updateTicket(
+      id: $id, 
+      ticketInput: { 
+        status: $status,
+        assignedEmployee: $assignedEmployee
+      }
+    ) {
+      id
+      customer
+      assignedEmployee
+      status
+      title
+      description
+      priority
+      agency
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 interface CreateTicketResponse {
   createTicket: Ticket;
 }

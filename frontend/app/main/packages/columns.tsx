@@ -1,6 +1,5 @@
 "use client";
 
-import EditPackageForm from "@/app/main/packages/EditPackageForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -55,29 +54,19 @@ function ActionCell({ package: pkg }: ActionCellProps) {
           </Tooltip>
         </TooltipProvider>
       </Link>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="ghost">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Pencil size={16} />
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Package</DialogTitle>
-            <DialogDescription>
-              Edit the fields below to update the package
-            </DialogDescription>
-          </DialogHeader>
-          <EditPackageForm package={pkg} />
-        </DialogContent>
-      </Dialog>
+
+      <Link href={`/main/packages/${pkg.id}/edit`}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="ghost">
+                <Pencil size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Link>
 
       <Dialog>
         <DialogTrigger asChild>

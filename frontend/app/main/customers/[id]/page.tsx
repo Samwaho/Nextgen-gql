@@ -30,9 +30,9 @@ import {
 import { useQuery } from "@apollo/client";
 import { GET_CUSTOMER, Customer, useCustomer } from "@/graphql/customer";
 import { GET_PACKAGES, Package } from "@/graphql/package";
-import EditCustomerForm from "../EditCustomerForm";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface ViewCustomerProps {
   params: Promise<{ id: string }>;
@@ -45,9 +45,7 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
     variables: { id: resolvedParams.id },
   });
 
-  const { data: packagesData } = useQuery<{ packages: Package[] }>(
-    GET_PACKAGES
-  );
+  const { data: packagesData } = useQuery<{ packages: Package[] }>(GET_PACKAGES);
   const packages = packagesData?.packages || [];
 
   const { deleteCustomer } = useCustomer();
@@ -128,22 +126,11 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
           </Badge>
         </div>
         <div className="flex gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <PencilIcon className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Customer</DialogTitle>
-                <DialogDescription>
-                  Update customer information below
-                </DialogDescription>
-              </DialogHeader>
-              <EditCustomerForm customer={customer} />
-            </DialogContent>
-          </Dialog>
+          <Link href={`/main/customers/${customer.id}/edit`}>
+            <Button variant="outline" size="icon">
+              <PencilIcon className="h-4 w-4" />
+            </Button>
+          </Link>
 
           <Dialog>
             <DialogTrigger asChild>

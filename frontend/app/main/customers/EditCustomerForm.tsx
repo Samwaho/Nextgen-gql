@@ -33,9 +33,10 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { TimePicker } from "@/components/shared/time-picker";
+import { useEffect, useState } from "react";
 
 // Create a modified schema for edit mode where password is optional
 const editCustomerSchema = customerSchema.extend({
@@ -71,6 +72,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
   const { updateCustomer, isUpdating } = useCustomer();
   const { data: packagesData, loading: packagesLoading } =
     useQuery<PackagesData>(GET_PACKAGES);
+  const [mounted, setMounted] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(editCustomerSchema),
@@ -80,24 +82,21 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
       address: customer?.address || "",
       phone: customer?.phone || "",
       username: customer?.username || "",
-      expiry: customer?.expiry
-        ? new Date(customer.expiry).toISOString()
-        : new Date().toISOString(),
+      expiry: customer?.expiry || new Date().toISOString(),
       package: customer?.package || null,
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
-    if (!customer?.id) {
-      toast.error("Customer ID is required");
-      return;
-    }
+  // Only show the form after first mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
+  const onSubmit = async (values: FormValues) => {
     try {
-      // Only include fields that have values
       const updateData = Object.fromEntries(
         Object.entries(values).filter(([key, value]) => {
-          if (key === "package") return true; // Always include package field
+          if (key === "package") return true;
           return value !== "" && value !== null;
         })
       );
@@ -115,12 +114,8 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
     }
   };
 
-  if (!customer) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
+  if (!mounted) {
+    return null;
   }
 
   return (
@@ -177,7 +172,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             control={form.control}
             name="password"
             label="Password"
-            placeholder="Enter new password"
+            placeholder="Enter new password (optional)"
             type="password"
           />
         </div>
@@ -230,18 +225,20 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal truncate",
                           !field.value && "text-muted-foreground"
                         )}
                         type="button"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {field.value ? (
-                          format(new Date(field.value), "PPP HH:mm:ss")
+                          <span className="block truncate">
+                            {format(new Date(field.value), "MMM d, yyyy HH:mm")}
+                          </span>
                         ) : (
                           <span>Pick a date</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50 shrink-0" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -260,12 +257,13 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
                             : new Date();
                           date.setHours(currentValue.getHours());
                           date.setMinutes(currentValue.getMinutes());
-                          date.setSeconds(currentValue.getSeconds());
+                          date.setSeconds(0); // Always set seconds to 0
                           field.onChange(date.toISOString());
                         }
                       }}
                       disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
+                        date < startOfDay(new Date()) ||
+                        date < new Date("1900-01-01")
                       }
                       initialFocus
                     />
@@ -273,6 +271,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
                       <TimePicker
                         setDate={(date) => {
                           if (date) {
+                            date.setSeconds(0); // Always set seconds to 0
                             field.onChange(date.toISOString());
                           }
                         }}

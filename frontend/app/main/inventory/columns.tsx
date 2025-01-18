@@ -17,7 +17,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import EditInventoryForm from "@/app/main/inventory/EditInventoryForm";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -58,29 +57,19 @@ function ActionsCell({ inventory }: ActionsCellProps) {
           </Tooltip>
         </TooltipProvider>
       </Link>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="ghost">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Pencil size={16} />
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Inventory Item</DialogTitle>
-            <DialogDescription>
-              Edit the fields below to update the inventory item
-            </DialogDescription>
-          </DialogHeader>
-          <EditInventoryForm inventory={inventory} />
-        </DialogContent>
-      </Dialog>
+
+      <Link href={`/main/inventory/${inventory.id}/edit`}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="ghost">
+                <Pencil size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Link>
 
       <Dialog>
         <DialogTrigger asChild>

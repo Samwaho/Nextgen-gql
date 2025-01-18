@@ -85,14 +85,16 @@ async def update_ticket(id: str, ticket_input: TicketUpdateInput) -> Optional[Ti
         "updated_at": datetime.utcnow()
     }
     
-    for field in [
-        "customer", "status", "title",
-        "description", "priority"
-    ]:
-        value = getattr(ticket_input, field)
-        if value is not None:
-            update_data[field] = value
-    
+    if ticket_input.status is not None:
+        update_data["status"] = ticket_input.status
+    if ticket_input.customer is not None:
+        update_data["customer"] = ticket_input.customer
+    if ticket_input.title is not None:
+        update_data["title"] = ticket_input.title
+    if ticket_input.description is not None:
+        update_data["description"] = ticket_input.description
+    if ticket_input.priority is not None:
+        update_data["priority"] = ticket_input.priority
     if hasattr(ticket_input, 'assignedEmployee'):
         update_data["assigned_employee"] = ticket_input.assignedEmployee
     

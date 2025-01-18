@@ -14,7 +14,7 @@ import { usePackage, PackageInput } from "@/graphql/package";
 
 type FormValues = z.infer<typeof packageSchema>;
 
-const CreatePackageForm = () => {
+export default function PackageForm() {
   const router = useRouter();
   const { createPackage, isCreating } = usePackage();
 
@@ -199,6 +199,4 @@ const CreatePackageForm = () => {
       </form>
     </Form>
   );
-};
-
-export default CreatePackageForm;
+}

@@ -3,21 +3,13 @@
 import React from "react";
 import { columns } from "@/app/main/packages/columns";
 import { DataTable } from "@/components/shared/DataTable";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Box, Radio, Satellite, Plus } from "lucide-react";
-import CreatePackageForm from "@/app/main/packages/createPackageForm";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@apollo/client";
 import { GET_PACKAGES, Package } from "@/graphql/package";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 const Page = () => {
   const { data, loading, error } = useQuery<{ packages: Package[] }>(
@@ -128,23 +120,12 @@ const Page = () => {
 
       <div className="flex items-center justify-between mt-6">
         <h4 className="text-lg font-semibold">Package Table</h4>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
-              <Plus size={18} />
-              <p>Add New</p>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Package</DialogTitle>
-              <DialogDescription>
-                Fill in the fields below to add a new package
-              </DialogDescription>
-            </DialogHeader>
-            <CreatePackageForm />
-          </DialogContent>
-        </Dialog>
+        <Link href="/main/packages/new">
+          <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+            <Plus size={18} />
+            <p>Add New</p>
+          </Button>
+        </Link>
       </div>
       <div className="mt-4">
         <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">

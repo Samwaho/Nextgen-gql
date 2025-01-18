@@ -5,21 +5,13 @@ import { columns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Users, UserCheck, Clock, UserX } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import CreateCustomerForm from "@/app/main/customers/CustomerForm";
 import { formatDate } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomerProps } from "@/lib/schemas";
 import { useQuery } from "@apollo/client";
 import { GET_CUSTOMERS } from "@/graphql/customer";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 const Page = () => {
   const { data, loading } = useQuery(GET_CUSTOMERS);
@@ -147,23 +139,12 @@ const Page = () => {
 
       <div className="flex items-center justify-between mt-6">
         <h4 className="text-lg font-semibold">Customer Table</h4>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
-              <UserPlus className="h-4 w-4" />
-              <p>Add New</p>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Customer</DialogTitle>
-              <DialogDescription>
-                Fill in the fields below to add a new customer
-              </DialogDescription>
-            </DialogHeader>
-            <CreateCustomerForm />
-          </DialogContent>
-        </Dialog>
+        <Link href="/main/customers/new">
+          <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+            <UserPlus className="h-4 w-4" />
+            <p>Add New</p>
+          </Button>
+        </Link>
       </div>
       <div className="mt-4">
         <Tabs defaultValue="all" className="">

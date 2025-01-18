@@ -21,22 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CreateTicketForm from "@/app/main/tickets/CreateTicketForm";
-import EditTicketForm from "@/app/main/tickets/EditTicketForm";
-import {
-  Ticket,
-  Pencil,
-  User,
-  Clock,
-  UserCircle2,
-  Trash2,
-  CalendarDays,
-} from "lucide-react";
+import { Ticket, Pencil, User, Clock, UserCircle2, Trash2, CalendarDays } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_TICKETS, UPDATE_TICKET, useTicket } from "@/graphql/ticket";
+import { GET_TICKETS, UPDATE_TICKET, useTicket, UPDATE_TICKET_STATUS } from "@/graphql/ticket";
 import { GET_EMPLOYEES, Employee } from "@/graphql/employee";
 import {
   format,
@@ -52,6 +42,7 @@ import {
 import { GET_CUSTOMERS, Customer } from "@/graphql/customer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 type DateFilter = "all" | "today" | "yesterday" | "last7days" | "last30days";
 
@@ -62,7 +53,7 @@ export default function TicketsPage() {
     loading: isLoading,
   } = useQuery(GET_TICKETS);
 
-  const [updateTicketStatus] = useMutation(UPDATE_TICKET, {
+  const [updateTicketStatus] = useMutation(UPDATE_TICKET_STATUS, {
     onCompleted: () => {
       toast.success("Ticket status updated successfully");
     },
@@ -151,14 +142,15 @@ export default function TicketsPage() {
         await updateTicketStatus({
           variables: {
             id: draggedTicket.id,
-            ticketInput: {
-              status,
-            },
+            status,
+            assignedEmployee: draggedTicket.assignedEmployee
           },
         });
         setTicketList((prevTickets) =>
           prevTickets.map((ticket) =>
-            ticket.id === draggedTicket.id ? { ...ticket, status } : ticket
+            ticket.id === draggedTicket.id
+              ? { ...ticket, status }
+              : ticket
           )
         );
       } catch (error) {
@@ -292,16 +284,16 @@ export default function TicketsPage() {
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 space-y-3 sm:space-y-0">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <h4 className="text-base md:text-lg font-semibold">Tickets Table</h4>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+      <div className="flex flex-col gap-2 mt-4 sm:mt-6">
+        <h4 className="text-base md:text-lg font-semibold">Tickets Table</h4>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
             <CalendarDays className="h-4 w-4 text-gray-500" />
             <Select
               value={dateFilter}
               onValueChange={(value: DateFilter) => setDateFilter(value)}
             >
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-[130px] h-8 text-sm">
                 <SelectValue placeholder="Filter by date" />
               </SelectTrigger>
               <SelectContent>
@@ -313,25 +305,15 @@ export default function TicketsPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-custom flex items-center gap-2 px-3 py-2 text-sm md:text-base text-white rounded-md w-auto sm:w-auto">
+          <Link href="/main/tickets/new">
+            <Button className="bg-gradient-custom flex items-center gap-2 px-3 py-2 text-sm md:text-base text-white rounded-md whitespace-nowrap">
               <Ticket className="h-4 w-4" />
               <p>Add New</p>
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Ticket</DialogTitle>
-              <DialogDescription>
-                Fill in the fields below to add a new ticket
-              </DialogDescription>
-            </DialogHeader>
-            <CreateTicketForm />
-          </DialogContent>
-        </Dialog>
+          </Link>
+        </div>
       </div>
+
       <div className="mt-4">
         <div className="mt-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
@@ -562,27 +544,16 @@ function TicketColumn({
                     </p>
                   </div>
                   <div className="flex gap-1 sm:gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Ticket</DialogTitle>
-                          <DialogDescription>
-                            Update the ticket details below
-                          </DialogDescription>
-                        </DialogHeader>
-                        <EditTicketForm ticket={ticketData} />
-                      </DialogContent>
-                    </Dialog>
+                    <Link href={`/main/tickets/${ticket.id}/edit`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Link>
 
                     <Dialog
                       open={ticketToDelete === ticket.id}

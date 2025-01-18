@@ -1,19 +1,10 @@
 import strawberry
-from typing import Optional
-from datetime import datetime
+from typing import Optional, List
 from enum import Enum
 
 @strawberry.enum
 class ServiceType(str, Enum):
     """Service types supported by the RADIUS server"""
-    @classmethod
-    def _missing_(cls, value):
-        # Handle case-insensitive lookup
-        for member in cls:
-            if member.value.lower() == str(value).lower():
-                return member
-        return None
-        
     pppoe = "pppoe"
     hotspot = "hotspot"
     static = "static"
@@ -49,18 +40,6 @@ class RateLimit:
         
         return rate_limit
 
-@strawberry.type
-class Package:
-    id: str
-    name: str
-    price: float
-    type: ServiceType
-    rate_limit: RateLimit
-    radius_profile: str  # Name of the RADIUS profile
-    agency: str
-    created_at: datetime
-    updated_at: Optional[datetime] = None
-
 @strawberry.input
 class RateLimitInput:
     rx_rate: str
@@ -91,18 +70,72 @@ class RateLimitInput:
         
         return rate_limit
 
-@strawberry.input
-class PackageInput:
+@strawberry.type
+class GroupCheckAttribute:
+    id: int
+    groupname: str
+    attribute: str
+    op: str = ":="
+    value: str
+
+@strawberry.type
+class GroupReplyAttribute:
+    id: int
+    groupname: str
+    attribute: str
+    op: str = ":="
+    value: str
+
+@strawberry.type
+class ProfileGroup:
+    groupname: str
+    check_attributes: List[GroupCheckAttribute]
+    reply_attributes: List[GroupReplyAttribute]
+
+@strawberry.type
+class Profile:
     name: str
-    price: float
-    type: ServiceType
-    rate_limit: RateLimitInput
-    radius_profile: Optional[str] = None  # If not provided, will use package name
+    service_type: ServiceType
+    description: Optional[str] = None
+    group: ProfileGroup
+    rate_limit: RateLimit
+    ip_pool: Optional[str] = None
+
+@strawberry.type
+class UserProfile:
+    username: str
+    profile_name: str
+    priority: int = 1
 
 @strawberry.input
-class PackageUpdateInput:
-    name: Optional[str] = None
-    price: Optional[float] = None
-    type: Optional[ServiceType] = None
+class GroupAttributeInput:
+    attribute: str
+    op: str = ":="
+    value: str
+
+@strawberry.input
+class ProfileCreateInput:
+    name: str
+    service_type: ServiceType
+    description: Optional[str] = None
     rate_limit: Optional[RateLimitInput] = None
-    radius_profile: Optional[str] = None
+    ip_pool: Optional[str] = None
+    check_attributes: Optional[List[GroupAttributeInput]] = None
+    reply_attributes: Optional[List[GroupAttributeInput]] = None
+
+@strawberry.input
+class ProfileUpdateInput:
+    service_type: Optional[ServiceType] = None
+    description: Optional[str] = None
+    rate_limit: Optional[RateLimitInput] = None
+    ip_pool: Optional[str] = None
+    check_attributes: Optional[List[GroupAttributeInput]] = None
+    reply_attributes: Optional[List[GroupAttributeInput]] = None
+
+@strawberry.input
+class AssignProfileInput:
+    username: str
+    profile_name: str
+    priority: Optional[int] = None
+    replace_existing: bool = True
+    use_check_attribute: bool = False 

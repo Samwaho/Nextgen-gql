@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { phoneRegex } from "./utils";
+import { ServiceType } from "@/graphql/package";
 
 export const signInFormSchema = z.object({
   username: z.string().email("Invalid email address"),
@@ -38,35 +39,15 @@ export const mikrotikSchema = z.object({
 
 export const packageSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  price: z.coerce.number().min(0, "Price must be a positive number"),
-  bandwidth: z.string().min(1, "Bandwidth is required"),
-  type: z.string().min(1, "Type is required"),
-  downloadSpeed: z.coerce
-    .number()
-    .min(0, "Download speed must be a positive number"),
-  uploadSpeed: z.coerce
-    .number()
-    .min(0, "Upload speed must be a positive number"),
-  burstDownload: z.coerce
-    .number()
-    .min(0, "Burst download must be a positive number")
-    .nullable(),
-  burstUpload: z.coerce
-    .number()
-    .min(0, "Burst upload must be a positive number")
-    .nullable(),
-  thresholdDownload: z.coerce
-    .number()
-    .min(0, "Threshold download must be a positive number")
-    .nullable(),
-  thresholdUpload: z.coerce
-    .number()
-    .min(0, "Threshold upload must be a positive number")
-    .nullable(),
-  burstTime: z.coerce
-    .number()
-    .min(0, "Burst time must be a positive number")
-    .nullable(),
+  price: z.coerce.number().min(0, "Price must be greater than or equal to 0"),
+  type: z.nativeEnum(ServiceType),
+  downloadSpeed: z.coerce.number().min(0, "Download speed must be greater than or equal to 0"),
+  uploadSpeed: z.coerce.number().min(0, "Upload speed must be greater than or equal to 0"),
+  burstDownload: z.coerce.number().nullable(),
+  burstUpload: z.coerce.number().nullable(),
+  thresholdDownload: z.coerce.number().nullable(),
+  thresholdUpload: z.coerce.number().nullable(),
+  burstTime: z.coerce.number().nullable(),
   radiusProfile: z.string().nullable(),
 });
 

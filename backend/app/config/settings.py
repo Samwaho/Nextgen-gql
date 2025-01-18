@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
     # API URLs
-    RADIUS_API_URL: str = os.getenv("RADIUS_API_URL", "http://localhost/radius")
+    RADIUS_API_URL: str = os.getenv("RADIUS_API_URL", "http://localhost:9000/graphql")
     ROUTEROS_API_URL: str = os.getenv("ROUTEROS_API_URL", "http://localhost/routeros")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost")
     

@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { packageSchema } from "@/lib/schemas";
 import { useRouter } from "next/navigation";
 import CustomInput from "./CustomInput";
-import { Package, usePackage } from "@/graphql/package";
+import CustomSelect from "./CustomSelect";
+import { Package, usePackage, ServiceType, toMikrotikFormat, fromMikrotikFormat } from "@/graphql/package";
 
 // Create a modified schema for edit mode where optional fields are truly optional
 const editPackageSchema = packageSchema.extend({
@@ -28,6 +29,13 @@ interface EditPackageFormProps {
   package: Package;
 }
 
+const serviceTypeOptions = [
+  { value: ServiceType.pppoe, label: "PPPoE" },
+  { value: ServiceType.hotspot, label: "Hotspot" },
+  { value: ServiceType.static, label: "Static" },
+  { value: ServiceType.dhcp, label: "DHCP" },
+];
+
 export default function EditPackageForm({
   package: initialPackage,
 }: EditPackageFormProps) {
@@ -38,61 +46,38 @@ export default function EditPackageForm({
     resolver: zodResolver(editPackageSchema),
     defaultValues: {
       name: initialPackage.name || "",
-      bandwidth: initialPackage.bandwidth || "",
       price: initialPackage.price || 0,
-      type: initialPackage.type || "",
-      downloadSpeed: initialPackage.downloadSpeed || 0,
-      uploadSpeed: initialPackage.uploadSpeed || 0,
-      burstDownload: initialPackage.burstDownload,
-      burstUpload: initialPackage.burstUpload,
-      thresholdDownload: initialPackage.thresholdDownload,
-      thresholdUpload: initialPackage.thresholdUpload,
-      burstTime: initialPackage.burstTime,
+      type: initialPackage.type || ServiceType.pppoe,
+      downloadSpeed: initialPackage.rateLimit ? Number(fromMikrotikFormat(initialPackage.rateLimit.rxRate).value) : 0,
+      uploadSpeed: initialPackage.rateLimit ? Number(fromMikrotikFormat(initialPackage.rateLimit.txRate).value) : 0,
+      burstDownload: initialPackage.rateLimit?.burstRxRate ? Number(fromMikrotikFormat(initialPackage.rateLimit.burstRxRate).value) : null,
+      burstUpload: initialPackage.rateLimit?.burstTxRate ? Number(fromMikrotikFormat(initialPackage.rateLimit.burstTxRate).value) : null,
+      thresholdDownload: initialPackage.rateLimit?.burstThresholdRx ? Number(fromMikrotikFormat(initialPackage.rateLimit.burstThresholdRx).value) : null,
+      thresholdUpload: initialPackage.rateLimit?.burstThresholdTx ? Number(fromMikrotikFormat(initialPackage.rateLimit.burstThresholdTx).value) : null,
+      burstTime: initialPackage.rateLimit?.burstTime ? Number(initialPackage.rateLimit.burstTime.replace('s', '')) : null,
       radiusProfile: initialPackage.radiusProfile,
     },
   });
 
   const onSubmit = async (values: PackageFormValues) => {
     try {
-      // Convert numeric fields and handle null values
-      const numericFields = [
-        "price",
-        "downloadSpeed",
-        "uploadSpeed",
-        "burstDownload",
-        "burstUpload",
-        "thresholdDownload",
-        "thresholdUpload",
-        "burstTime",
-      ] as const;
-
       const updateData = {
-        ...values,
-        ...Object.fromEntries(
-          numericFields.map((field) => [
-            field,
-            values[field] ? Number(values[field]) : null,
-          ])
-        ),
+        name: values.name,
+        price: Number(values.price),
+        type: values.type,
+        rateLimit: {
+          rxRate: toMikrotikFormat(values.downloadSpeed),
+          txRate: toMikrotikFormat(values.uploadSpeed),
+          burstRxRate: values.burstDownload ? toMikrotikFormat(values.burstDownload) : null,
+          burstTxRate: values.burstUpload ? toMikrotikFormat(values.burstUpload) : null,
+          burstThresholdRx: values.thresholdDownload ? toMikrotikFormat(values.thresholdDownload) : null,
+          burstThresholdTx: values.thresholdUpload ? toMikrotikFormat(values.thresholdUpload) : null,
+          burstTime: values.burstTime ? `${values.burstTime}s` : null,
+        },
+        radiusProfile: values.radiusProfile,
       };
 
-      // Remove empty/null values except for required fields
-      const requiredFields = [
-        "name",
-        "bandwidth",
-        "price",
-        "type",
-        "downloadSpeed",
-        "uploadSpeed",
-      ];
-      const cleanedData = Object.fromEntries(
-        Object.entries(updateData).filter(
-          ([key, value]) =>
-            requiredFields.includes(key) || (value !== null && value !== "")
-        )
-      );
-
-      await updatePackage(initialPackage.id, cleanedData);
+      await updatePackage(initialPackage.id, updateData);
       toast.success("Package updated successfully");
       router.refresh();
     } catch (error) {
@@ -123,71 +108,55 @@ export default function EditPackageForm({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            control={form.control}
-            name="bandwidth"
-            label="Bandwidth"
-            placeholder="Enter bandwidth in the format of 5M/5M"
-            required
-          />
-          <CustomInput
+          <CustomSelect
             control={form.control}
             name="type"
-            label="Type"
-            placeholder="Enter type"
+            label="Service Type"
+            placeholder="Select service type"
+            options={serviceTypeOptions}
             required
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="downloadSpeed"
-            label="Download Speed"
+            label="Download Speed (Mbps)"
             placeholder="Enter download speed"
             type="number"
             required
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="uploadSpeed"
-            label="Upload Speed"
+            label="Upload Speed (Mbps)"
             placeholder="Enter upload speed"
             type="number"
             required
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="burstDownload"
-            label="Burst Download (Optional)"
-            placeholder="Enter burst download"
+            label="Burst Download (Mbps)"
+            placeholder="Enter burst download speed"
             type="number"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="burstUpload"
-            label="Burst Upload (Optional)"
-            placeholder="Enter burst upload"
+            label="Burst Upload (Mbps)"
+            placeholder="Enter burst upload speed"
             type="number"
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="thresholdDownload"
-            label="Threshold Download (Optional)"
-            placeholder="Enter threshold download"
-            type="number"
-          />
-          <CustomInput
-            control={form.control}
-            name="thresholdUpload"
-            label="Threshold Upload (Optional)"
-            placeholder="Enter threshold upload"
+            label="Threshold Download (Mbps)"
+            placeholder="Enter threshold download speed"
             type="number"
           />
         </div>
@@ -195,16 +164,26 @@ export default function EditPackageForm({
         <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
-            name="burstTime"
-            label="Burst Time (Optional)"
-            placeholder="Enter burst time"
+            name="thresholdUpload"
+            label="Threshold Upload (Mbps)"
+            placeholder="Enter threshold upload speed"
             type="number"
           />
           <CustomInput
             control={form.control}
+            name="burstTime"
+            label="Burst Time (seconds)"
+            placeholder="Enter burst time"
+            type="number"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <CustomInput
+            control={form.control}
             name="radiusProfile"
-            label="Radius Profile (Optional)"
-            placeholder="Enter radius profile"
+            label="RADIUS Profile Name"
+            placeholder="Leave empty to use package name"
           />
         </div>
 

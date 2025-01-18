@@ -3,10 +3,10 @@
 import React from "react";
 import { columns } from "@/app/main/packages/columns";
 import { DataTable } from "@/components/shared/DataTable";
-import { Box, Radio, Satellite, Plus } from "lucide-react";
+import { Box, Radio, Wifi, Network, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@apollo/client";
-import { GET_PACKAGES, Package } from "@/graphql/package";
+import { GET_PACKAGES, Package, ServiceType } from "@/graphql/package";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -28,7 +28,7 @@ const Page = () => {
         </div>
 
         <div className="flex gap-4 mt-6 flex-wrap">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
               className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
@@ -64,11 +64,14 @@ const Page = () => {
 
   const packages = data?.packages || [];
   const totalPackages = packages.length;
-  const broadbandPackages = packages.filter(
-    (pkg) => pkg.type === "broadband"
+  const pppoePackages = packages.filter(
+    (pkg) => pkg.type === ServiceType.pppoe
   ).length;
-  const satellitePackages = packages.filter(
-    (pkg) => pkg.type === "satellite"
+  const hotspotPackages = packages.filter(
+    (pkg) => pkg.type === ServiceType.hotspot
+  ).length;
+  const staticPackages = packages.filter(
+    (pkg) => pkg.type === ServiceType.static
   ).length;
 
   return (
@@ -94,26 +97,38 @@ const Page = () => {
         </div>
         <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Broadband Packages</p>
+            <p className="text-sm text-gray-500">PPPoE Packages</p>
             <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Radio size={16} />
+              <Network size={16} />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{broadbandPackages}</h1>
+          <h1 className="font-bold text-lg">{pppoePackages}</h1>
           <p className="text-xs md:text-sm text-gray-500">
-            Broadband internet packages
+            PPPoE internet packages
           </p>
         </div>
         <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Satellite Packages</p>
+            <p className="text-sm text-gray-500">Hotspot Packages</p>
             <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Satellite size={16} />
+              <Wifi size={16} />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{satellitePackages}</h1>
+          <h1 className="font-bold text-lg">{hotspotPackages}</h1>
           <p className="text-xs md:text-sm text-gray-500">
-            Satellite internet packages
+            Hotspot internet packages
+          </p>
+        </div>
+        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+          <div className="flex justify-between">
+            <p className="text-sm text-gray-500">Static Packages</p>
+            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
+              <Radio size={16} />
+            </div>
+          </div>
+          <h1 className="font-bold text-lg">{staticPackages}</h1>
+          <p className="text-xs md:text-sm text-gray-500">
+            Static IP packages
           </p>
         </div>
       </div>

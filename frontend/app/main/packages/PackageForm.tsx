@@ -10,9 +10,17 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import CustomInput from "./CustomInput";
-import { usePackage, PackageInput } from "@/graphql/package";
+import CustomSelect from "./CustomSelect";
+import { usePackage, PackageInput, ServiceType } from "@/graphql/package";
 
 type FormValues = z.infer<typeof packageSchema>;
+
+const serviceTypeOptions = [
+  { value: ServiceType.pppoe, label: "PPPoE" },
+  { value: ServiceType.hotspot, label: "Hotspot" },
+  { value: ServiceType.static, label: "Static" },
+  { value: ServiceType.dhcp, label: "DHCP" },
+];
 
 export default function PackageForm() {
   const router = useRouter();
@@ -23,8 +31,7 @@ export default function PackageForm() {
     defaultValues: {
       name: "",
       price: 0,
-      bandwidth: "",
-      type: "",
+      type: ServiceType.pppoe,
       downloadSpeed: 0,
       uploadSpeed: 0,
       burstDownload: null,
@@ -38,29 +45,23 @@ export default function PackageForm() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // Convert string values to numbers for numeric fields and handle null values
-      const numericFields = [
-        "price",
-        "downloadSpeed",
-        "uploadSpeed",
-        "burstDownload",
-        "burstUpload",
-        "thresholdDownload",
-        "thresholdUpload",
-        "burstTime",
-      ] as const;
-
-      const formattedValues: PackageInput = {
-        ...values,
-        ...Object.fromEntries(
-          numericFields.map((field) => [
-            field,
-            values[field] !== null ? Number(values[field]) : null,
-          ])
-        ),
+      const packageInput: PackageInput = {
+        name: values.name,
+        price: Number(values.price),
+        type: values.type as ServiceType,
+        rateLimit: {
+          rxRate: values.downloadSpeed.toString(),
+          txRate: values.uploadSpeed.toString(),
+          burstRxRate: values.burstDownload ? values.burstDownload.toString() : null,
+          burstTxRate: values.burstUpload ? values.burstUpload.toString() : null,
+          burstThresholdRx: values.thresholdDownload ? values.thresholdDownload.toString() : null,
+          burstThresholdTx: values.thresholdUpload ? values.thresholdUpload.toString() : null,
+          burstTime: values.burstTime ? values.burstTime.toString() : null,
+        },
+        radiusProfile: values.radiusProfile,
       };
 
-      await createPackage(formattedValues);
+      await createPackage(packageInput);
       toast.success("Package created successfully");
       router.push("/main/packages");
       router.refresh();
@@ -95,18 +96,12 @@ export default function PackageForm() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            control={form.control}
-            name="bandwidth"
-            label="Bandwidth"
-            placeholder="Enter bandwidth in the format of 5M/5M"
-            required
-          />
-          <CustomInput
+          <CustomSelect
             control={form.control}
             name="type"
-            label="Type"
-            placeholder="Enter type"
+            label="Service Type"
+            placeholder="Select service type"
+            options={serviceTypeOptions}
             required
           />
         </div>
@@ -115,7 +110,7 @@ export default function PackageForm() {
           <CustomInput
             control={form.control}
             name="downloadSpeed"
-            label="Download Speed"
+            label="Download Speed (Mbps)"
             placeholder="Enter download speed"
             type="number"
             required
@@ -123,7 +118,7 @@ export default function PackageForm() {
           <CustomInput
             control={form.control}
             name="uploadSpeed"
-            label="Upload Speed"
+            label="Upload Speed (Mbps)"
             placeholder="Enter upload speed"
             type="number"
             required
@@ -134,15 +129,15 @@ export default function PackageForm() {
           <CustomInput
             control={form.control}
             name="burstDownload"
-            label="Burst Download"
-            placeholder="Enter burst download"
+            label="Burst Download (Mbps)"
+            placeholder="Enter burst download speed"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="burstUpload"
-            label="Burst Upload"
-            placeholder="Enter burst upload"
+            label="Burst Upload (Mbps)"
+            placeholder="Enter burst upload speed"
             type="number"
           />
         </div>
@@ -151,15 +146,15 @@ export default function PackageForm() {
           <CustomInput
             control={form.control}
             name="thresholdDownload"
-            label="Threshold Download"
-            placeholder="Enter threshold download"
+            label="Threshold Download (Mbps)"
+            placeholder="Enter threshold download speed"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="thresholdUpload"
-            label="Threshold Upload"
-            placeholder="Enter threshold upload"
+            label="Threshold Upload (Mbps)"
+            placeholder="Enter threshold upload speed"
             type="number"
           />
         </div>
@@ -168,15 +163,15 @@ export default function PackageForm() {
           <CustomInput
             control={form.control}
             name="burstTime"
-            label="Burst Time"
+            label="Burst Time (seconds)"
             placeholder="Enter burst time"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="radiusProfile"
-            label="Radius Profile"
-            placeholder="Enter radius profile"
+            label="RADIUS Profile Name"
+            placeholder="Leave empty to use package name"
           />
         </div>
 

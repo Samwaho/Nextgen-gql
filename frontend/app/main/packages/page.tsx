@@ -64,11 +64,11 @@ const Page = () => {
 
   const packages = data?.packages || [];
   const totalPackages = packages.length;
-  const broadbandPackages = packages.filter(
-    (pkg) => pkg.type === "broadband"
+  const pppoePackages = packages.filter(
+    (pkg) => pkg.serviceType === "pppoe"
   ).length;
-  const satellitePackages = packages.filter(
-    (pkg) => pkg.type === "satellite"
+  const hotspotPackages = packages.filter(
+    (pkg) => pkg.serviceType === "hotspot"
   ).length;
 
   return (
@@ -94,26 +94,26 @@ const Page = () => {
         </div>
         <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Broadband Packages</p>
+            <p className="text-sm text-gray-500">PPPoE Packages</p>
             <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
               <Radio size={16} />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{broadbandPackages}</h1>
+          <h1 className="font-bold text-lg">{pppoePackages}</h1>
           <p className="text-xs md:text-sm text-gray-500">
-            Broadband internet packages
+            PPPoE service packages
           </p>
         </div>
         <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Satellite Packages</p>
+            <p className="text-sm text-gray-500">Hotspot Packages</p>
             <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
               <Satellite size={16} />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{satellitePackages}</h1>
+          <h1 className="font-bold text-lg">{hotspotPackages}</h1>
           <p className="text-xs md:text-sm text-gray-500">
-            Satellite internet packages
+            Hotspot service packages
           </p>
         </div>
       </div>

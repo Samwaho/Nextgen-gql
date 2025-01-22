@@ -1,0 +1,37 @@
+rest {
+    # Connection settings
+    connect_uri = "http://localhost:8000/radius"
+    
+    # Authentication endpoint
+    authenticate {
+        uri = "${..connect_uri}/auth"
+        method = 'post'
+        body = 'json'
+        data = '{ "username": "%{User-Name}", "password": "%{User-Password}" }'
+    }
+    
+    # Authorization endpoint
+    authorize {
+        uri = "${..connect_uri}/authorize"
+        method = 'post'
+        body = 'json'
+        data = '{ "username": "%{User-Name}" }'
+    }
+    
+    # Pool settings
+    pool {
+        start = 5
+        min = 4
+        max = 20
+        spare = 3
+        uses = 0
+        retry_delay = 30
+        lifetime = 0
+        idle_timeout = 60
+    }
+    
+    # HTTP settings
+    http_header = "Content-Type: application/json"
+    timeout = 5.0
+    connect_timeout = 5.0
+} 

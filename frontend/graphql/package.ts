@@ -4,16 +4,25 @@ export interface Package {
   id: string;
   name: string;
   price: number;
-  bandwidth: string;
-  type: string;
+  // Network settings
   downloadSpeed: number;
   uploadSpeed: number;
+  // Burst configuration
   burstDownload: number | null;
   burstUpload: number | null;
   thresholdDownload: number | null;
   thresholdUpload: number | null;
   burstTime: number | null;
-  radiusProfile: string | null;
+  // MikroTik service configuration
+  serviceType: string | null;
+  addressPool: string | null;
+  // Session management
+  sessionTimeout: number | null;
+  idleTimeout: number | null;
+  // QoS and VLAN
+  priority: number | null;
+  vlanId: number | null;
+  // Administrative
   agency: string;
   createdAt: string;
   updatedAt: string | null;
@@ -22,16 +31,24 @@ export interface Package {
 export interface PackageInput {
   name: string;
   price: number;
-  bandwidth: string;
-  type: string;
+  // Network settings
   downloadSpeed: number;
   uploadSpeed: number;
+  // Burst configuration
   burstDownload?: number | null;
   burstUpload?: number | null;
   thresholdDownload?: number | null;
   thresholdUpload?: number | null;
   burstTime?: number | null;
-  radiusProfile?: string | null;
+  // MikroTik service configuration
+  serviceType?: string | null;
+  addressPool?: string | null;
+  // Session management
+  sessionTimeout?: number | null;
+  idleTimeout?: number | null;
+  // QoS and VLAN
+  priority?: number | null;
+  vlanId?: number | null;
 }
 
 export type PackageUpdateInput = Partial<PackageInput>;
@@ -42,16 +59,25 @@ export const GET_PACKAGES = gql`
       id
       name
       price
-      bandwidth
-      type
+      # Network settings
       downloadSpeed
       uploadSpeed
+      # Burst configuration
       burstDownload
       burstUpload
       thresholdDownload
       thresholdUpload
       burstTime
-      radiusProfile
+      # MikroTik service configuration
+      serviceType
+      addressPool
+      # Session management
+      sessionTimeout
+      idleTimeout
+      # QoS and VLAN
+      priority
+      vlanId
+      # Administrative
       agency
       createdAt
       updatedAt
@@ -65,16 +91,25 @@ export const GET_PACKAGE = gql`
       id
       name
       price
-      bandwidth
-      type
+      # Network settings
       downloadSpeed
       uploadSpeed
+      # Burst configuration
       burstDownload
       burstUpload
       thresholdDownload
       thresholdUpload
       burstTime
-      radiusProfile
+      # MikroTik service configuration
+      serviceType
+      addressPool
+      # Session management
+      sessionTimeout
+      idleTimeout
+      # QoS and VLAN
+      priority
+      vlanId
+      # Administrative
       agency
       createdAt
       updatedAt
@@ -88,16 +123,25 @@ export const CREATE_PACKAGE = gql`
       id
       name
       price
-      bandwidth
-      type
+      # Network settings
       downloadSpeed
       uploadSpeed
+      # Burst configuration
       burstDownload
       burstUpload
       thresholdDownload
       thresholdUpload
       burstTime
-      radiusProfile
+      # MikroTik service configuration
+      serviceType
+      addressPool
+      # Session management
+      sessionTimeout
+      idleTimeout
+      # QoS and VLAN
+      priority
+      vlanId
+      # Administrative
       agency
       createdAt
       updatedAt
@@ -111,16 +155,25 @@ export const UPDATE_PACKAGE = gql`
       id
       name
       price
-      bandwidth
-      type
+      # Network settings
       downloadSpeed
       uploadSpeed
+      # Burst configuration
       burstDownload
       burstUpload
       thresholdDownload
       thresholdUpload
       burstTime
-      radiusProfile
+      # MikroTik service configuration
+      serviceType
+      addressPool
+      # Session management
+      sessionTimeout
+      idleTimeout
+      # QoS and VLAN
+      priority
+      vlanId
+      # Administrative
       agency
       createdAt
       updatedAt

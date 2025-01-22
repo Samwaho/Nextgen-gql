@@ -57,6 +57,22 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
     collection = db.get_collection("customers")
     now = datetime.utcnow()
     
+    # Verify package exists if specified
+    if customer_input.package:
+        package = await db.get_collection("packages").find_one({"_id": ObjectId(customer_input.package)})
+        if not package:
+            raise ValueError("Invalid package ID")
+    
+    # Generate RADIUS username if not provided
+    radius_username = customer_input.radiusUsername
+    if not radius_username:
+        # Use username as RADIUS username if not specified
+        radius_username = customer_input.username
+        
+        # Ensure RADIUS username is unique
+        while await collection.find_one({"radius_username": radius_username}):
+            radius_username = f"{customer_input.username}_{now.timestamp()}"
+    
     customer_data = {
         "name": customer_input.name,
         "email": customer_input.email,
@@ -68,7 +84,7 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         "package": customer_input.package,
         "status": customer_input.status or "inactive",
         "expiry": customer_input.expiry,
-        "radius_username": customer_input.radiusUsername,
+        "radius_username": radius_username,
         "created_at": now,
         "updated_at": now
     }
@@ -87,7 +103,7 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         package=customer_data.get("package"),
         status=customer_data["status"],
         expiry=customer_data["expiry"],
-        radiusUsername=customer_data.get("radius_username"),
+        radiusUsername=customer_data["radius_username"],
         created_at=customer_data["created_at"],
         updated_at=customer_data["updated_at"]
     )
@@ -98,16 +114,33 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
         "updated_at": datetime.utcnow()
     }
     
+    # Verify package exists if being updated
+    if customer_input.package:
+        package = await db.get_collection("packages").find_one({"_id": ObjectId(customer_input.package)})
+        if not package:
+            raise ValueError("Invalid package ID")
+    
+    # Handle RADIUS username update
+    if customer_input.radiusUsername:
+        # Check if new RADIUS username is unique
+        existing = await collection.find_one({
+            "radius_username": customer_input.radiusUsername,
+            "_id": {"$ne": ObjectId(id)}
+        })
+        if existing:
+            raise ValueError("RADIUS username already exists")
+    
     for field in [
         "name", "email", "phone", "username", "address",
-        "package", "status", "expiry", "radiusUsername"
+        "package", "status", "expiry"
     ]:
         value = getattr(customer_input, field)
         if value is not None:
-            if field == "radiusUsername":
-                update_data["radius_username"] = value
-            else:
-                update_data[field] = value
+            update_data[field] = value
+    
+    # Handle RADIUS username separately
+    if customer_input.radiusUsername is not None:
+        update_data["radius_username"] = customer_input.radiusUsername
     
     try:
         result = await collection.find_one_and_update(

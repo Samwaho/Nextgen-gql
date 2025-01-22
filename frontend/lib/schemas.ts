@@ -38,36 +38,25 @@ export const mikrotikSchema = z.object({
 
 export const packageSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  price: z.coerce.number().min(0, "Price must be a positive number"),
-  bandwidth: z.string().min(1, "Bandwidth is required"),
-  type: z.string().min(1, "Type is required"),
-  downloadSpeed: z.coerce
-    .number()
-    .min(0, "Download speed must be a positive number"),
-  uploadSpeed: z.coerce
-    .number()
-    .min(0, "Upload speed must be a positive number"),
-  burstDownload: z.coerce
-    .number()
-    .min(0, "Burst download must be a positive number")
-    .nullable(),
-  burstUpload: z.coerce
-    .number()
-    .min(0, "Burst upload must be a positive number")
-    .nullable(),
-  thresholdDownload: z.coerce
-    .number()
-    .min(0, "Threshold download must be a positive number")
-    .nullable(),
-  thresholdUpload: z.coerce
-    .number()
-    .min(0, "Threshold upload must be a positive number")
-    .nullable(),
-  burstTime: z.coerce
-    .number()
-    .min(0, "Burst time must be a positive number")
-    .nullable(),
-  radiusProfile: z.string().nullable(),
+  price: z.coerce.number().min(0, "Price must be greater than or equal to 0"),
+  // Network settings
+  downloadSpeed: z.coerce.number().min(0, "Download speed must be greater than or equal to 0"),
+  uploadSpeed: z.coerce.number().min(0, "Upload speed must be greater than or equal to 0"),
+  // Burst configuration
+  burstDownload: z.coerce.number().nullable(),
+  burstUpload: z.coerce.number().nullable(),
+  thresholdDownload: z.coerce.number().nullable(),
+  thresholdUpload: z.coerce.number().nullable(),
+  burstTime: z.coerce.number().nullable(),
+  // MikroTik service configuration
+  serviceType: z.enum(["pppoe", "hotspot", "dhcp", "static"]).nullable(),
+  addressPool: z.string().nullable(),
+  // Session management
+  sessionTimeout: z.coerce.number().nullable(),
+  idleTimeout: z.coerce.number().nullable(),
+  // QoS and VLAN
+  priority: z.coerce.number().min(1).max(8).nullable(),
+  vlanId: z.coerce.number().nullable(),
 });
 
 export const staffSchema = z.object({

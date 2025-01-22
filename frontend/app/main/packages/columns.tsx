@@ -111,8 +111,20 @@ export const columns: ColumnDef<Package>[] = [
     header: () => <div className="text-fuchsia-500">Name</div>,
   },
   {
-    accessorKey: "bandwidth",
-    header: () => <div className="text-fuchsia-500">Bandwidth</div>,
+    accessorKey: "downloadSpeed",
+    header: () => <div className="text-fuchsia-500">Download Speed</div>,
+    cell: ({ row }) => {
+      const speed = row.getValue("downloadSpeed") as number;
+      return <div>{speed} Mbps</div>;
+    },
+  },
+  {
+    accessorKey: "uploadSpeed",
+    header: () => <div className="text-fuchsia-500">Upload Speed</div>,
+    cell: ({ row }) => {
+      const speed = row.getValue("uploadSpeed") as number;
+      return <div>{speed} Mbps</div>;
+    },
   },
   {
     accessorKey: "price",
@@ -127,20 +139,22 @@ export const columns: ColumnDef<Package>[] = [
     },
   },
   {
-    accessorKey: "type",
-    header: () => <div className="text-fuchsia-500">Type</div>,
+    accessorKey: "serviceType",
+    header: () => <div className="text-fuchsia-500">Service Type</div>,
     cell: ({ row }) => {
-      const type = row.getValue("type") as string;
+      const type = row.getValue("serviceType") as string;
       const typeColor =
-        type === "broadband"
+        type === "pppoe"
           ? "bg-green-100 text-green-800"
-          : "bg-blue-100 text-blue-800";
+          : type === "hotspot"
+          ? "bg-blue-100 text-blue-800"
+          : "bg-gray-100 text-gray-800";
 
       return (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor}`}
         >
-          {type.charAt(0).toUpperCase() + type.slice(1)}
+          {type ? type.toUpperCase() : "N/A"}
         </span>
       );
     },

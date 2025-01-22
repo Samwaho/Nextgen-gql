@@ -16,16 +16,25 @@ async def get_packages(agency_id: Optional[str] = None) -> List[Package]:
             id=str(package["_id"]),
             name=package["name"],
             price=package["price"],
-            bandwidth=package["bandwidth"],
-            type=package["type"],
+            # Network settings
             downloadSpeed=package["download_speed"],
             uploadSpeed=package["upload_speed"],
+            # Burst configuration
             burstDownload=package.get("burst_download"),
             burstUpload=package.get("burst_upload"),
             thresholdDownload=package.get("threshold_download"),
             thresholdUpload=package.get("threshold_upload"),
             burstTime=package.get("burst_time"),
-            radiusProfile=package.get("radius_profile"),
+            # MikroTik service configuration
+            serviceType=package.get("service_type"),
+            addressPool=package.get("address_pool"),
+            # Session management
+            sessionTimeout=package.get("session_timeout"),
+            idleTimeout=package.get("idle_timeout"),
+            # QoS and VLAN
+            priority=package.get("priority"),
+            vlanId=package.get("vlan_id"),
+            # Administrative
             agency=package["agency"],
             createdAt=package.get("created_at", datetime.utcnow()),
             updatedAt=package.get("updated_at")
@@ -41,16 +50,25 @@ async def get_package(id: str) -> Optional[Package]:
                 id=str(package["_id"]),
                 name=package["name"],
                 price=package["price"],
-                bandwidth=package["bandwidth"],
-                type=package["type"],
+                # Network settings
                 downloadSpeed=package["download_speed"],
                 uploadSpeed=package["upload_speed"],
+                # Burst configuration
                 burstDownload=package.get("burst_download"),
                 burstUpload=package.get("burst_upload"),
                 thresholdDownload=package.get("threshold_download"),
                 thresholdUpload=package.get("threshold_upload"),
                 burstTime=package.get("burst_time"),
-                radiusProfile=package.get("radius_profile"),
+                # MikroTik service configuration
+                serviceType=package.get("service_type"),
+                addressPool=package.get("address_pool"),
+                # Session management
+                sessionTimeout=package.get("session_timeout"),
+                idleTimeout=package.get("idle_timeout"),
+                # QoS and VLAN
+                priority=package.get("priority"),
+                vlanId=package.get("vlan_id"),
+                # Administrative
                 agency=package["agency"],
                 createdAt=package.get("created_at", datetime.utcnow()),
                 updatedAt=package.get("updated_at")
@@ -66,16 +84,25 @@ async def create_package(package_input: PackageInput, agency_id: str) -> Package
     package_data = {
         "name": package_input.name,
         "price": package_input.price,
-        "bandwidth": package_input.bandwidth,
-        "type": package_input.type,
+        # Network settings
         "download_speed": package_input.downloadSpeed,
         "upload_speed": package_input.uploadSpeed,
+        # Burst configuration
         "burst_download": package_input.burstDownload,
         "burst_upload": package_input.burstUpload,
         "threshold_download": package_input.thresholdDownload,
         "threshold_upload": package_input.thresholdUpload,
         "burst_time": package_input.burstTime,
-        "radius_profile": package_input.radiusProfile,
+        # MikroTik service configuration
+        "service_type": package_input.serviceType,
+        "address_pool": package_input.addressPool,
+        # Session management
+        "session_timeout": package_input.sessionTimeout,
+        "idle_timeout": package_input.idleTimeout,
+        # QoS and VLAN
+        "priority": package_input.priority,
+        "vlan_id": package_input.vlanId,
+        # Administrative
         "agency": agency_id,
         "created_at": now,
         "updated_at": now
@@ -88,16 +115,25 @@ async def create_package(package_input: PackageInput, agency_id: str) -> Package
         id=str(package_data["_id"]),
         name=package_data["name"],
         price=package_data["price"],
-        bandwidth=package_data["bandwidth"],
-        type=package_data["type"],
+        # Network settings
         downloadSpeed=package_data["download_speed"],
         uploadSpeed=package_data["upload_speed"],
+        # Burst configuration
         burstDownload=package_data.get("burst_download"),
         burstUpload=package_data.get("burst_upload"),
         thresholdDownload=package_data.get("threshold_download"),
         thresholdUpload=package_data.get("threshold_upload"),
         burstTime=package_data.get("burst_time"),
-        radiusProfile=package_data.get("radius_profile"),
+        # MikroTik service configuration
+        serviceType=package_data.get("service_type"),
+        addressPool=package_data.get("address_pool"),
+        # Session management
+        sessionTimeout=package_data.get("session_timeout"),
+        idleTimeout=package_data.get("idle_timeout"),
+        # QoS and VLAN
+        priority=package_data.get("priority"),
+        vlanId=package_data.get("vlan_id"),
+        # Administrative
         agency=package_data["agency"],
         createdAt=package_data["created_at"],
         updatedAt=package_data["updated_at"]
@@ -117,7 +153,11 @@ async def update_package(id: str, package_input: PackageUpdateInput) -> Optional
         "thresholdDownload": "threshold_download",
         "thresholdUpload": "threshold_upload",
         "burstTime": "burst_time",
-        "radiusProfile": "radius_profile"
+        "serviceType": "service_type",
+        "addressPool": "address_pool",
+        "sessionTimeout": "session_timeout",
+        "idleTimeout": "idle_timeout",
+        "vlanId": "vlan_id"
     }
     
     for field, value in package_input.__dict__.items():
@@ -136,16 +176,25 @@ async def update_package(id: str, package_input: PackageUpdateInput) -> Optional
                 id=str(result["_id"]),
                 name=result["name"],
                 price=result["price"],
-                bandwidth=result["bandwidth"],
-                type=result["type"],
+                # Network settings
                 downloadSpeed=result["download_speed"],
                 uploadSpeed=result["upload_speed"],
+                # Burst configuration
                 burstDownload=result.get("burst_download"),
                 burstUpload=result.get("burst_upload"),
                 thresholdDownload=result.get("threshold_download"),
                 thresholdUpload=result.get("threshold_upload"),
                 burstTime=result.get("burst_time"),
-                radiusProfile=result.get("radius_profile"),
+                # MikroTik service configuration
+                serviceType=result.get("service_type"),
+                addressPool=result.get("address_pool"),
+                # Session management
+                sessionTimeout=result.get("session_timeout"),
+                idleTimeout=result.get("idle_timeout"),
+                # QoS and VLAN
+                priority=result.get("priority"),
+                vlanId=result.get("vlan_id"),
+                # Administrative
                 agency=result["agency"],
                 createdAt=result.get("created_at", datetime.utcnow()),
                 updatedAt=result.get("updated_at")

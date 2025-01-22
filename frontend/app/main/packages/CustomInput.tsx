@@ -15,6 +15,8 @@ interface CustomInputProps<T extends FieldValues> {
   placeholder: string;
   type?: "text" | "number";
   required?: boolean;
+  min?: number;
+  max?: number;
 }
 
 const CustomInput = <T extends FieldValues>({
@@ -24,6 +26,8 @@ const CustomInput = <T extends FieldValues>({
   placeholder,
   type = "text",
   required,
+  min,
+  max,
 }: CustomInputProps<T>) => {
   return (
     <FormField
@@ -42,6 +46,8 @@ const CustomInput = <T extends FieldValues>({
               {...field}
               value={field.value ?? ""}
               required={required}
+              min={min}
+              max={max}
             />
           </FormControl>
           <FormMessage />

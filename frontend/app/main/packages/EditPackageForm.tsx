@@ -10,22 +10,29 @@ import { toast } from "sonner";
 import { packageSchema } from "@/lib/schemas";
 import { useRouter } from "next/navigation";
 import CustomInput from "./CustomInput";
+import CustomSelect from "./CustomSelect";
 import { Package, usePackage } from "@/graphql/package";
 
-// Create a modified schema for edit mode where optional fields are truly optional
-const editPackageSchema = packageSchema.extend({
-  burstDownload: z.coerce.number().min(0).nullable(),
-  burstUpload: z.coerce.number().min(0).nullable(),
-  thresholdDownload: z.coerce.number().min(0).nullable(),
-  thresholdUpload: z.coerce.number().min(0).nullable(),
-  burstTime: z.coerce.number().min(0).nullable(),
-  radiusProfile: z.string().nullable(),
-});
+type FormValues = z.infer<typeof packageSchema>;
 
-type PackageFormValues = z.infer<typeof editPackageSchema>;
+type ServiceType = "pppoe" | "hotspot" | "dhcp" | "static";
+
+interface Option {
+  value: ServiceType;
+  label: string;
+}
+
+const SERVICE_TYPES: Option[] = [
+  { value: "pppoe", label: "PPPoE" },
+  { value: "hotspot", label: "Hotspot" },
+  { value: "dhcp", label: "DHCP" },
+  { value: "static", label: "Static" },
+];
 
 interface EditPackageFormProps {
-  package: Package;
+  package: Package & {
+    serviceType: ServiceType | null;
+  };
 }
 
 export default function EditPackageForm({
@@ -34,27 +41,30 @@ export default function EditPackageForm({
   const router = useRouter();
   const { updatePackage, isUpdating } = usePackage();
 
-  const form = useForm<PackageFormValues>({
-    resolver: zodResolver(editPackageSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(packageSchema),
     defaultValues: {
-      name: initialPackage.name || "",
-      bandwidth: initialPackage.bandwidth || "",
-      price: initialPackage.price || 0,
-      type: initialPackage.type || "",
-      downloadSpeed: initialPackage.downloadSpeed || 0,
-      uploadSpeed: initialPackage.uploadSpeed || 0,
+      name: initialPackage.name,
+      price: initialPackage.price,
+      downloadSpeed: initialPackage.downloadSpeed,
+      uploadSpeed: initialPackage.uploadSpeed,
       burstDownload: initialPackage.burstDownload,
       burstUpload: initialPackage.burstUpload,
       thresholdDownload: initialPackage.thresholdDownload,
       thresholdUpload: initialPackage.thresholdUpload,
       burstTime: initialPackage.burstTime,
-      radiusProfile: initialPackage.radiusProfile,
+      serviceType: initialPackage.serviceType as ServiceType | null,
+      addressPool: initialPackage.addressPool,
+      sessionTimeout: initialPackage.sessionTimeout,
+      idleTimeout: initialPackage.idleTimeout,
+      priority: initialPackage.priority,
+      vlanId: initialPackage.vlanId,
     },
   });
 
-  const onSubmit = async (values: PackageFormValues) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      // Convert numeric fields and handle null values
+      // Convert string values to numbers for numeric fields and handle null values
       const numericFields = [
         "price",
         "downloadSpeed",
@@ -64,46 +74,39 @@ export default function EditPackageForm({
         "thresholdDownload",
         "thresholdUpload",
         "burstTime",
+        "sessionTimeout",
+        "idleTimeout",
+        "priority",
+        "vlanId",
       ] as const;
 
-      const updateData = {
+      const formattedValues = {
         ...values,
         ...Object.fromEntries(
           numericFields.map((field) => [
             field,
-            values[field] ? Number(values[field]) : null,
+            values[field] !== null ? Number(values[field]) : null,
           ])
         ),
       };
 
-      // Remove empty/null values except for required fields
-      const requiredFields = [
-        "name",
-        "bandwidth",
-        "price",
-        "type",
-        "downloadSpeed",
-        "uploadSpeed",
-      ];
-      const cleanedData = Object.fromEntries(
-        Object.entries(updateData).filter(
-          ([key, value]) =>
-            requiredFields.includes(key) || (value !== null && value !== "")
-        )
-      );
-
-      await updatePackage(initialPackage.id, cleanedData);
+      await updatePackage(initialPackage.id, formattedValues);
       toast.success("Package updated successfully");
+      router.push("/main/packages");
       router.refresh();
     } catch (error) {
-      console.error("Error updating package:", error);
-      toast.error("Failed to update package. Please try again.");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to update package");
+      }
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
         <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
@@ -122,28 +125,12 @@ export default function EditPackageForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            control={form.control}
-            name="bandwidth"
-            label="Bandwidth"
-            placeholder="Enter bandwidth in the format of 5M/5M"
-            required
-          />
-          <CustomInput
-            control={form.control}
-            name="type"
-            label="Type"
-            placeholder="Enter type"
-            required
-          />
-        </div>
-
+        {/* Network Settings */}
         <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="downloadSpeed"
-            label="Download Speed"
+            label="Download Speed (Mbps)"
             placeholder="Enter download speed"
             type="number"
             required
@@ -151,25 +138,26 @@ export default function EditPackageForm({
           <CustomInput
             control={form.control}
             name="uploadSpeed"
-            label="Upload Speed"
+            label="Upload Speed (Mbps)"
             placeholder="Enter upload speed"
             type="number"
             required
           />
         </div>
 
+        {/* Burst Configuration */}
         <div className="grid grid-cols-2 gap-4">
           <CustomInput
             control={form.control}
             name="burstDownload"
-            label="Burst Download (Optional)"
+            label="Burst Download (Mbps)"
             placeholder="Enter burst download"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="burstUpload"
-            label="Burst Upload (Optional)"
+            label="Burst Upload (Mbps)"
             placeholder="Enter burst upload"
             type="number"
           />
@@ -179,14 +167,14 @@ export default function EditPackageForm({
           <CustomInput
             control={form.control}
             name="thresholdDownload"
-            label="Threshold Download (Optional)"
+            label="Threshold Download (Mbps)"
             placeholder="Enter threshold download"
             type="number"
           />
           <CustomInput
             control={form.control}
             name="thresholdUpload"
-            label="Threshold Upload (Optional)"
+            label="Threshold Upload (Mbps)"
             placeholder="Enter threshold upload"
             type="number"
           />
@@ -196,15 +184,64 @@ export default function EditPackageForm({
           <CustomInput
             control={form.control}
             name="burstTime"
-            label="Burst Time (Optional)"
+            label="Burst Time (seconds)"
             placeholder="Enter burst time"
+            type="number"
+          />
+        </div>
+
+        {/* MikroTik Configuration */}
+        <div className="grid grid-cols-2 gap-4">
+          <CustomSelect
+            control={form.control}
+            name="serviceType"
+            label="Service Type"
+            placeholder="Select service type"
+            options={SERVICE_TYPES}
+          />
+          <CustomInput
+            control={form.control}
+            name="addressPool"
+            label="Address Pool"
+            placeholder="Enter IP address pool name"
+          />
+        </div>
+
+        {/* Session Management */}
+        <div className="grid grid-cols-2 gap-4">
+          <CustomInput
+            control={form.control}
+            name="sessionTimeout"
+            label="Session Timeout (seconds)"
+            placeholder="Enter session timeout"
             type="number"
           />
           <CustomInput
             control={form.control}
-            name="radiusProfile"
-            label="Radius Profile (Optional)"
-            placeholder="Enter radius profile"
+            name="idleTimeout"
+            label="Idle Timeout (seconds)"
+            placeholder="Enter idle timeout"
+            type="number"
+          />
+        </div>
+
+        {/* QoS and VLAN */}
+        <div className="grid grid-cols-2 gap-4">
+          <CustomInput
+            control={form.control}
+            name="priority"
+            label="Priority (1-8)"
+            placeholder="Enter queue priority"
+            type="number"
+            min={1}
+            max={8}
+          />
+          <CustomInput
+            control={form.control}
+            name="vlanId"
+            label="VLAN ID"
+            placeholder="Enter VLAN ID"
+            type="number"
           />
         </div>
 

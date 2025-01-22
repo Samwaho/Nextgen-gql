@@ -3,6 +3,12 @@ from datetime import datetime
 import strawberry
 
 @strawberry.type
+class CustomerPackage:
+    id: str
+    name: str
+    serviceType: str
+
+@strawberry.type
 class Customer:
     id: str
     name: str
@@ -11,12 +17,12 @@ class Customer:
     username: str
     address: Optional[str]
     agency: str
-    package: Optional[str]
+    package: Optional[CustomerPackage]
     status: str
     expiry: datetime
-    radiusUsername: Optional[str]
-    created_at: datetime
-    updated_at: Optional[datetime]
+    displayPassword: str
+    createdAt: datetime = strawberry.field(name="createdAt")
+    updatedAt: Optional[datetime] = strawberry.field(name="updatedAt")
 
 @strawberry.input
 class CustomerInput:
@@ -29,7 +35,6 @@ class CustomerInput:
     package: Optional[str] = None
     status: Optional[str] = "inactive"
     expiry: datetime
-    radiusUsername: Optional[str] = None
 
 @strawberry.input
 class CustomerUpdateInput:
@@ -41,4 +46,4 @@ class CustomerUpdateInput:
     package: Optional[str] = None
     status: Optional[str] = None
     expiry: Optional[datetime] = None
-    radiusUsername: Optional[str] = None
+    password: Optional[str] = None

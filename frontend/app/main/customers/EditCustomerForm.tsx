@@ -40,11 +40,7 @@ import { useEffect, useState } from "react";
 
 // Create a modified schema for edit mode where password is optional
 const editCustomerSchema = customerSchema.extend({
-  password: z
-    .string()
-    .min(4, "Password must contain at least 4 characters")
-    .optional(),
-  package: z.string().nullable(),
+  password: z.string().min(6, "Password must be at least 6 characters").optional(),
 });
 
 type FormValues = z.infer<typeof editCustomerSchema>;
@@ -64,6 +60,7 @@ interface EditCustomerFormProps {
     password: string;
     expiry: string;
     package: string | null;
+    radiusUsername?: string;
   };
 }
 
@@ -84,6 +81,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
       username: customer?.username || "",
       expiry: customer?.expiry || new Date().toISOString(),
       package: customer?.package || null,
+      radiusUsername: customer?.radiusUsername || "",
     },
   });
 
@@ -170,14 +168,20 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
           />
           <CustomInput
             control={form.control}
+            name="radiusUsername"
+            label="RADIUS Username"
+            placeholder="Leave empty to use username"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <CustomInput
+            control={form.control}
             name="password"
             label="Password"
             placeholder="Enter new password (optional)"
             type="password"
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="package"
@@ -200,7 +204,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
                   <SelectContent>
                     {packagesData?.packages.map((pkg) => (
                       <SelectItem key={pkg.id} value={pkg.id}>
-                        {pkg.name}
+                        {pkg.name} ({pkg.serviceType})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -209,7 +213,9 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
               </FormItem>
             )}
           />
+        </div>
 
+        <div className="grid grid-1 gap-4">
           <FormField
             control={form.control}
             name="expiry"

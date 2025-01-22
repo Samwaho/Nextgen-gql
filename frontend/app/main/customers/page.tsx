@@ -7,15 +7,14 @@ import { Button } from "@/components/ui/button";
 import { UserPlus, Users, UserCheck, Clock, UserX } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CustomerProps } from "@/lib/schemas";
 import { useQuery } from "@apollo/client";
-import { GET_CUSTOMERS } from "@/graphql/customer";
+import { GET_CUSTOMERS, Customer } from "@/graphql/customer";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 
 const Page = () => {
   const { data, loading } = useQuery(GET_CUSTOMERS);
-  const customers: CustomerProps[] = data?.customers || [];
+  const customers: Customer[] = data?.customers || [];
 
   const totalCustomers = customers.length;
   const activeCustomers = customers.filter(
@@ -163,7 +162,7 @@ const Page = () => {
               <DataTable
                 columns={columns}
                 data={customers.filter(
-                  (customer) => customer.package === "pppoe"
+                  (customer) => customer.package?.serviceType === "pppoe"
                 )}
               />
             </div>
@@ -173,7 +172,7 @@ const Page = () => {
               <DataTable
                 columns={columns}
                 data={customers.filter(
-                  (customer) => customer.package === "hotspot"
+                  (customer) => customer.package?.serviceType === "hotspot"
                 )}
               />
             </div>

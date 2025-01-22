@@ -8,14 +8,17 @@ export interface Customer {
   phone: string;
   username: string;
   address: string;
-  package: string | null;
+  package: {
+    id: string;
+    name: string;
+    serviceType: string;
+  } | null;
   status: "active" | "inactive" | "expired";
   expiry: string;
-  password: string;
-  created_at: string;
-  updated_at: string | null;
+  displayPassword: string;
+  createdAt: string;
+  updatedAt: string | null;
   agency?: string;
-  radiusUsername?: string;
 }
 
 export interface CustomerInput {
@@ -28,10 +31,11 @@ export interface CustomerInput {
   package?: string | null;
   status?: string;
   expiry: string;
-  radiusUsername?: string | null;
 }
 
-export type CustomerUpdateInput = Partial<Omit<CustomerInput, "password">>;
+export type CustomerUpdateInput = Partial<Omit<CustomerInput, "password">> & {
+  password?: string;
+};
 
 // Queries
 export const GET_CUSTOMERS = gql`
@@ -44,10 +48,14 @@ export const GET_CUSTOMERS = gql`
       username
       address
       agency
-      package
+      package {
+        id
+        name
+        serviceType
+      }
       status
       expiry
-      radiusUsername
+      displayPassword
       createdAt
       updatedAt
     }
@@ -64,10 +72,14 @@ export const GET_CUSTOMER = gql`
       username
       address
       agency
-      package
+      package {
+        id
+        name
+        serviceType
+      }
       status
       expiry
-      radiusUsername
+      displayPassword
       createdAt
       updatedAt
     }
@@ -85,10 +97,14 @@ export const CREATE_CUSTOMER = gql`
       username
       address
       agency
-      package
+      package {
+        id
+        name
+        serviceType
+      }
       status
       expiry
-      radiusUsername
+      displayPassword
       createdAt
       updatedAt
     }
@@ -105,10 +121,14 @@ export const UPDATE_CUSTOMER = gql`
       username
       address
       agency
-      package
+      package {
+        id
+        name
+        serviceType
+      }
       status
       expiry
-      radiusUsername
+      displayPassword
       createdAt
       updatedAt
     }

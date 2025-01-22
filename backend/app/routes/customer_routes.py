@@ -2,8 +2,9 @@ import strawberry
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
+from passlib.hash import bcrypt
 from ..config.database import db
-from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput
+from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput, CustomerPackage
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -11,6 +12,16 @@ async def get_customers(agency_id: Optional[str] = None) -> List[Customer]:
     collection = db.get_collection("customers")
     query = {"agency": agency_id} if agency_id else {}
     customers_data = await collection.find(query).sort("created_at", -1).to_list(None)
+    
+    # Get all unique package IDs
+    package_ids = {customer.get("package") for customer in customers_data if customer.get("package")}
+    
+    # Fetch all packages in one query
+    packages = {}
+    if package_ids:
+        packages_data = await db.get_collection("packages").find({"_id": {"$in": [ObjectId(pid) for pid in package_ids]}}).to_list(None)
+        packages = {str(package["_id"]): package for package in packages_data}
+    
     return [
         Customer(
             id=str(customer["_id"]),
@@ -20,12 +31,16 @@ async def get_customers(agency_id: Optional[str] = None) -> List[Customer]:
             username=customer["username"],
             address=customer.get("address"),
             agency=customer["agency"],
-            package=customer.get("package"),
+            package=CustomerPackage(
+                id=str(packages[customer["package"]]["_id"]),
+                name=packages[customer["package"]]["name"],
+                serviceType=packages[customer["package"]]["service_type"]
+            ) if customer.get("package") and customer["package"] in packages else None,
             status=customer.get("status", "inactive"),
             expiry=customer["expiry"],
-            radiusUsername=customer.get("radius_username"),
-            created_at=customer.get("created_at", datetime.utcnow()),
-            updated_at=customer.get("updated_at")
+            displayPassword=customer.get("display_password", ""),
+            createdAt=customer.get("created_at", datetime.utcnow()),
+            updatedAt=customer.get("updated_at")
         ) for customer in customers_data
     ]
 
@@ -34,6 +49,17 @@ async def get_customer(id: str) -> Optional[Customer]:
     try:
         customer = await collection.find_one({"_id": ObjectId(id)})
         if customer:
+            # Fetch package details if customer has a package
+            package = None
+            if customer.get("package"):
+                package_data = await db.get_collection("packages").find_one({"_id": ObjectId(customer["package"])})
+                if package_data:
+                    package = CustomerPackage(
+                        id=str(package_data["_id"]),
+                        name=package_data["name"],
+                        serviceType=package_data["service_type"]
+                    )
+            
             return Customer(
                 id=str(customer["_id"]),
                 name=customer["name"],
@@ -42,12 +68,12 @@ async def get_customer(id: str) -> Optional[Customer]:
                 username=customer["username"],
                 address=customer.get("address"),
                 agency=customer["agency"],
-                package=customer.get("package"),
+                package=package,
                 status=customer.get("status", "inactive"),
                 expiry=customer["expiry"],
-                radiusUsername=customer.get("radius_username"),
-                created_at=customer.get("created_at", datetime.utcnow()),
-                updated_at=customer.get("updated_at")
+                displayPassword=customer.get("display_password", ""),
+                createdAt=customer.get("created_at", datetime.utcnow()),
+                updatedAt=customer.get("updated_at")
             )
     except:
         return None
@@ -63,32 +89,22 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         if not package:
             raise ValueError("Invalid package ID")
     
-    # Generate RADIUS username if not provided
-    radius_username = customer_input.radiusUsername
-    if not radius_username:
-        # Use username as RADIUS username if not specified
-        radius_username = customer_input.username
-        
-        # Ensure RADIUS username is unique
-        while await collection.find_one({"radius_username": radius_username}):
-            radius_username = f"{customer_input.username}_{now.timestamp()}"
-    
     customer_data = {
         "name": customer_input.name,
         "email": customer_input.email,
         "phone": customer_input.phone,
         "username": customer_input.username,
-        "password": customer_input.password,
+        "password": bcrypt.hash(customer_input.password),
+        "display_password": customer_input.password,  # Store original password for display
         "address": customer_input.address,
         "agency": agency_id,
         "package": customer_input.package,
         "status": customer_input.status or "inactive",
         "expiry": customer_input.expiry,
-        "radius_username": radius_username,
         "created_at": now,
         "updated_at": now
     }
-    
+
     result = await collection.insert_one(customer_data)
     customer_data["_id"] = result.inserted_id
     
@@ -103,9 +119,9 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         package=customer_data.get("package"),
         status=customer_data["status"],
         expiry=customer_data["expiry"],
-        radiusUsername=customer_data["radius_username"],
-        created_at=customer_data["created_at"],
-        updated_at=customer_data["updated_at"]
+        displayPassword=customer_data["display_password"],
+        createdAt=customer_data["created_at"],
+        updatedAt=customer_data["updated_at"]
     )
 
 async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optional[Customer]:
@@ -120,16 +136,6 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
         if not package:
             raise ValueError("Invalid package ID")
     
-    # Handle RADIUS username update
-    if customer_input.radiusUsername:
-        # Check if new RADIUS username is unique
-        existing = await collection.find_one({
-            "radius_username": customer_input.radiusUsername,
-            "_id": {"$ne": ObjectId(id)}
-        })
-        if existing:
-            raise ValueError("RADIUS username already exists")
-    
     for field in [
         "name", "email", "phone", "username", "address",
         "package", "status", "expiry"
@@ -138,9 +144,10 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
         if value is not None:
             update_data[field] = value
     
-    # Handle RADIUS username separately
-    if customer_input.radiusUsername is not None:
-        update_data["radius_username"] = customer_input.radiusUsername
+    # Handle password update separately
+    if customer_input.password:
+        update_data["password"] = bcrypt.hash(customer_input.password)
+        update_data["display_password"] = customer_input.password
     
     try:
         result = await collection.find_one_and_update(
@@ -160,9 +167,9 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
                 package=result.get("package"),
                 status=result.get("status", "inactive"),
                 expiry=result["expiry"],
-                radiusUsername=result.get("radius_username"),
-                created_at=result.get("created_at", datetime.utcnow()),
-                updated_at=result.get("updated_at")
+                displayPassword=result.get("display_password", ""),
+                createdAt=result.get("created_at", datetime.utcnow()),
+                updatedAt=result.get("updated_at")
             )
     except:
         return None

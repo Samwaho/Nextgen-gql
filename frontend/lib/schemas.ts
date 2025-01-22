@@ -17,16 +17,15 @@ export const signUpFormSchema = z.object({
 });
 
 export const customerSchema = z.object({
-  name: z.string().min(3, "Name must contain at least 3 characters"),
+  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
+  phone: z.string().min(1, "Phone number is required"),
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   address: z.string().min(1, "Address is required"),
-  phone: z
-    .string()
-    .regex(phoneRegex, "Please enter a valid Kenyan phone number"),
-  username: z.string().min(3, "Username must contain at least 3 characters"),
-  password: z.string().min(4, "Password must contain at least 4 characters"),
-  expiry: z.string().datetime(),
   package: z.string().nullable(),
+  expiry: z.string(),
+  radiusUsername: z.string().optional(),
 });
 
 export const mikrotikSchema = z.object({

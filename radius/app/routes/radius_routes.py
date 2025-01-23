@@ -22,14 +22,14 @@ async def radius_authenticate(request: Dict, db: AsyncIOMotorDatabase = Depends(
     }
     """
     username = request.get("username")
-    password = request.get("password")
+    raw_password = request.get("password")  # Raw password from RADIUS
     
-    if not username or not password:
+    if not username or not raw_password:
         raise HTTPException(status_code=400, detail="Missing username or password")
     
-    # Find customer by radiusUsername
+    # Find customer by username
     customer = await db.customers.find_one({
-        "radius_username": username,
+        "username": username,
         "status": "active"  # Only authenticate active customers
     })
     
@@ -40,9 +40,8 @@ async def radius_authenticate(request: Dict, db: AsyncIOMotorDatabase = Depends(
     if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
         raise HTTPException(status_code=401, detail="Package expired")
     
-    # TODO: Implement proper password verification
-    # For now, using direct comparison (you should use proper password hashing)
-    if password != customer.get("password"):
+    # Direct password comparison since we store plain passwords
+    if raw_password != customer.get("password"):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     return Response(status_code=204)
@@ -62,9 +61,9 @@ async def radius_authorize(request: Dict, db: AsyncIOMotorDatabase = Depends(get
     if not username:
         raise HTTPException(status_code=400, detail="Missing username")
     
-    # Find customer by radiusUsername
+    # Find customer by username
     customer = await db.customers.find_one({
-        "radius_username": username,
+        "username": username,
         "status": "active"
     })
     
@@ -77,7 +76,7 @@ async def radius_authorize(request: Dict, db: AsyncIOMotorDatabase = Depends(get
     
     # Start with basic reply structure
     reply = {
-        "control:Cleartext-Password": customer["password"],
+        "control:Cleartext-Password": customer["password"],  # Use stored password directly
         "reply": {}
     }
     

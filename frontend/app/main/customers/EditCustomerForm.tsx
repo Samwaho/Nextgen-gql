@@ -57,10 +57,13 @@ interface EditCustomerFormProps {
     address: string;
     phone: string;
     username: string;
-    password: string;
     expiry: string;
-    package: string | null;
-    radiusUsername?: string;
+    package: {
+      id: string;
+      name: string;
+      serviceType: string;
+    } | null;
+    password: string;
   };
 }
 
@@ -80,8 +83,8 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
       phone: customer?.phone || "",
       username: customer?.username || "",
       expiry: customer?.expiry || new Date().toISOString(),
-      package: customer?.package || null,
-      radiusUsername: customer?.radiusUsername || "",
+      package: customer?.package?.id || null,
+      password: customer?.password || "",
     },
   });
 
@@ -162,49 +165,51 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
           <CustomInput
             control={form.control}
             name="username"
-            label="Username"
-            placeholder="Enter username"
+            label="PPPoE Username"
+            placeholder="Enter PPPoE username"
             required
           />
           <CustomInput
             control={form.control}
-            name="radiusUsername"
-            label="RADIUS Username"
-            placeholder="Leave empty to use username"
+            name="password"
+            label="PPPoE Password"
+            placeholder="Enter PPPoE password"
+            type="text"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            control={form.control}
-            name="password"
-            label="Password"
-            placeholder="Enter new password (optional)"
-            type="password"
-          />
           <FormField
             control={form.control}
             name="package"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Package
+                  Internet Package
                   <span className="text-red-500 ml-1">*</span>
                 </FormLabel>
                 <Select
                   disabled={packagesLoading}
                   onValueChange={field.onChange}
                   value={field.value || undefined}
+                  required
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a package" />
+                      <SelectValue placeholder="Select internet package">
+                        {(() => {
+                          const selectedPackage = packagesData?.packages.find(p => p.id === field.value);
+                          return selectedPackage 
+                            ? `${selectedPackage.name} - ${selectedPackage.serviceType}`
+                            : "Select internet package";
+                        })()}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {packagesData?.packages.map((pkg) => (
                       <SelectItem key={pkg.id} value={pkg.id}>
-                        {pkg.name} ({pkg.serviceType})
+                        {pkg.name} - {pkg.serviceType}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -213,9 +218,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
               </FormItem>
             )}
           />
-        </div>
 
-        <div className="grid grid-1 gap-4">
           <FormField
             control={form.control}
             name="expiry"

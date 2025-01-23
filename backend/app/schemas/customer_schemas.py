@@ -20,7 +20,7 @@ class Customer:
     package: Optional[CustomerPackage]
     status: str
     expiry: datetime
-    displayPassword: str
+    password: str  # PPPoE password
     createdAt: datetime = strawberry.field(name="createdAt")
     updatedAt: Optional[datetime] = strawberry.field(name="updatedAt")
 

@@ -150,7 +150,7 @@ export default function CustomerForm() {
             name="password"
             label="Password"
             placeholder="Enter password"
-            type="password"
+            type="text"
             required
           />
         </div>
@@ -162,23 +162,24 @@ export default function CustomerForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Package
+                  Internet Package
                   <span className="text-red-500 ml-1">*</span>
                 </FormLabel>
                 <Select
                   disabled={packagesLoading}
                   onValueChange={field.onChange}
                   value={field.value || undefined}
+                  required
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a package" />
+                      <SelectValue placeholder="Select internet package" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {packagesData?.packages.map((pkg) => (
                       <SelectItem key={pkg.id} value={pkg.id}>
-                        {pkg.name}
+                        {pkg.name} - {pkg.serviceType}
                       </SelectItem>
                     ))}
                   </SelectContent>

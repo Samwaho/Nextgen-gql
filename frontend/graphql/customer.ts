@@ -15,7 +15,7 @@ export interface Customer {
   } | null;
   status: "active" | "inactive" | "expired";
   expiry: string;
-  displayPassword: string;
+  password: string;  // PPPoE password
   createdAt: string;
   updatedAt: string | null;
   agency?: string;
@@ -55,7 +55,7 @@ export const GET_CUSTOMERS = gql`
       }
       status
       expiry
-      displayPassword
+      password
       createdAt
       updatedAt
     }
@@ -79,7 +79,7 @@ export const GET_CUSTOMER = gql`
       }
       status
       expiry
-      displayPassword
+      password
       createdAt
       updatedAt
     }
@@ -104,7 +104,7 @@ export const CREATE_CUSTOMER = gql`
       }
       status
       expiry
-      displayPassword
+      password
       createdAt
       updatedAt
     }
@@ -128,7 +128,7 @@ export const UPDATE_CUSTOMER = gql`
       }
       status
       expiry
-      displayPassword
+      password
       createdAt
       updatedAt
     }

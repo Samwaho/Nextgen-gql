@@ -13,14 +13,32 @@ async def get_database() -> AsyncIOMotorDatabase:
 
 def format_radius_response(data: Dict) -> Dict:
     """Format response according to FreeRADIUS REST module specs"""
-    response = {}
+    response = {
+        "control": {},
+        "reply": {}
+    }
+    
+    # Control attributes that should go in the control section
+    control_attrs = {
+        "Cleartext-Password",
+        "NT-Password",
+        "LM-Password",
+        "Password-With-Header",
+        "Auth-Type"
+    }
+    
     for key, value in data.items():
-        if isinstance(value, (str, int, float, bool)):
-            response[key] = {"value": [str(value)], "op": ":="}
-        elif isinstance(value, (list, tuple)):
-            response[key] = {"value": [str(x) for x in value], "op": ":="}
-        elif isinstance(value, dict):
-            response[key] = value
+        if key in control_attrs:
+            if isinstance(value, dict):
+                response["control"][key] = value
+            else:
+                response["control"][key] = {"value": [str(value)], "op": ":="}
+        else:
+            if isinstance(value, dict):
+                response["reply"][key] = value
+            else:
+                response["reply"][key] = {"value": [str(value)], "op": ":="}
+    
     return response
 
 @router.post("/authorize")
@@ -72,7 +90,8 @@ async def radius_authorize(
 
     # Build response according to FreeRADIUS REST module specs
     reply = {
-        "Cleartext-Password": customer["password"]
+        "Cleartext-Password": customer["password"],
+        "Auth-Type": "MS-CHAP"  # Explicitly set Auth-Type for MS-CHAP
     }
     
     # If customer has a package, get package details

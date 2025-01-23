@@ -4,7 +4,7 @@ from ..models.radius_models import RadiusProfile
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime
 from bson import ObjectId
-from ..config.database import radius_db
+from ..config.database import db
 import logging
 import json
 
@@ -18,7 +18,7 @@ logger = logging.getLogger("radius_routes")
 router = APIRouter(prefix="/radius", tags=["radius"])
 
 async def get_database() -> AsyncIOMotorDatabase:
-    return radius_db.get_database()
+    return db.get_database()
 
 def format_radius_response(data: Dict) -> Dict:
     """Format response according to FreeRADIUS REST module specs"""
@@ -99,9 +99,12 @@ async def radius_authorize(
     
     # Find customer by username
     logger.debug(f"Looking up customer with username: {username}")
-    customer = await db.customers.find_one({
+    # Query the isp_manager database's customers collection
+    customer = await db.get_collection("customers").find_one({
         "username": username
     })
+    
+    logger.debug(f"Raw customer data from DB: {json.dumps(customer, default=str) if customer else 'None'}")
     
     if not customer:
         logger.warning(f"Customer not found: {username}")

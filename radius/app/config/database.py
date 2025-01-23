@@ -11,7 +11,7 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-class RadiusDatabase:
+class Database:
     client: Optional[AsyncIOMotorClient] = None
     MAX_RETRIES = 3
     RETRY_DELAY = 2  # seconds
@@ -26,7 +26,6 @@ class RadiusDatabase:
                 
                 # Use the same MongoDB URL as the main backend
                 mongodb_url = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-                database_name = os.getenv("DATABASE_NAME", "nextgn_db")
                 
                 cls.client = AsyncIOMotorClient(
                     mongodb_url,
@@ -65,7 +64,12 @@ class RadiusDatabase:
         """Get database instance"""
         if cls.client is None:
             raise ConnectionError("Database client not initialized")
-        return cls.client[os.getenv("DATABASE_NAME", "nextgn_db")]
+        return cls.client[os.getenv("DATABASE_NAME", "isp_manager")]
+
+    @classmethod
+    def get_collection(cls, collection_name: str):
+        """Get collection from database"""
+        return cls.get_database()[collection_name]
 
 # Database instance
-radius_db = RadiusDatabase() 
+db = Database() 

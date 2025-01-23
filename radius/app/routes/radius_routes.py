@@ -44,21 +44,31 @@ async def radius_authorize(
         username = form.get("User-Name", "")
     
     if not username:
-        raise HTTPException(status_code=400, detail="Username required")
+        return format_radius_response({
+            "Reply-Message": "Login invalid"
+        })
     
     # Find customer by username
     customer = await db.customers.find_one({
-        "username": username,
-        "status": "active"  # Only authorize active customers
+        "username": username
     })
     
     if not customer:
-        # Return empty response to allow authentication to proceed
-        return {}
+        return format_radius_response({
+            "Reply-Message": "Login invalid"
+        })
+    
+    # Check if customer is active
+    if customer.get("status") != "active":
+        return format_radius_response({
+            "Reply-Message": "Login disabled"
+        })
     
     # Check if customer's package has expired
     if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
-        raise HTTPException(status_code=403, detail="Package expired")
+        return format_radius_response({
+            "Reply-Message": "Access time expired"
+        })
 
     # Build response according to FreeRADIUS REST module specs
     reply = {
@@ -87,9 +97,16 @@ async def radius_authorize(
                 vlan_id=package.get("vlan_id")
             )
             
-            # Add profile attributes with proper format
+            # Add profile attributes
+            reply.update({
+                "WISPr-Bandwidth-Max-Down": profile.download_speed,
+                "WISPr-Bandwidth-Max-Up": profile.upload_speed
+            })
+            
+            # Add additional profile attributes
             for attr in profile.to_radius_attributes():
-                reply[attr.name] = attr.value
+                if attr.name not in reply:
+                    reply[attr.name] = attr.value
     
     return format_radius_response(reply)
 
@@ -117,21 +134,37 @@ async def radius_authenticate(
         password = form.get("User-Password")
     
     if not username or not password:
-        raise HTTPException(status_code=400, detail="Username and password required")
+        return format_radius_response({
+            "Reply-Message": "Login invalid"
+        })
     
-    # Find customer by username and password
+    # Find customer by username
     customer = await db.customers.find_one({
-        "username": username,
-        "password": password,
-        "status": "active"
+        "username": username
     })
     
     if not customer:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        return format_radius_response({
+            "Reply-Message": "Login invalid"
+        })
+    
+    # Check password
+    if customer["password"] != password:
+        return format_radius_response({
+            "Reply-Message": "Wrong Password"
+        })
+    
+    # Check if customer is active
+    if customer.get("status") != "active":
+        return format_radius_response({
+            "Reply-Message": "Login disabled"
+        })
     
     # Check if customer's package has expired
     if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
-        raise HTTPException(status_code=401, detail="Package expired")
+        return format_radius_response({
+            "Reply-Message": "Access time expired"
+        })
     
     return Response(status_code=204)
 
@@ -148,7 +181,7 @@ async def radius_accounting(
     POST /user/{username}/sessions/{session_id}?action=preacct|accounting
     """
     if action not in ["preacct", "accounting"]:
-        raise HTTPException(status_code=400, detail="Invalid action")
+        return Response(status_code=400)
     
     try:
         body = await request.json()
@@ -160,9 +193,17 @@ async def radius_accounting(
         form = await request.form()
         body = dict(form)
     
-    # TODO: Store accounting data in database
-    # For now, just acknowledge the request
-    return Response(status_code=204)
+    # Add username and session_id to body
+    body["username"] = username
+    body["session_id"] = session_id
+    body["timestamp"] = datetime.utcnow()
+    
+    # Store accounting data
+    try:
+        await db.accounting.insert_one(body)
+        return Response(status_code=204)
+    except Exception as e:
+        return Response(status_code=500)
 
 @router.post("/user/{username}/mac/{called_station_id}")
 async def radius_post_auth(
@@ -177,7 +218,7 @@ async def radius_post_auth(
     POST /user/{username}/mac/{called_station_id}?action=post-auth|pre-proxy|post-proxy
     """
     if action not in ["post-auth", "pre-proxy", "post-proxy"]:
-        raise HTTPException(status_code=400, detail="Invalid action")
+        return Response(status_code=400)
     
     try:
         body = await request.json()
@@ -189,6 +230,14 @@ async def radius_post_auth(
         form = await request.form()
         body = dict(form)
     
-    # TODO: Handle post-auth data
-    # For now, just acknowledge the request
-    return Response(status_code=204) 
+    # Add username and called_station_id to body
+    body["username"] = username
+    body["called_station_id"] = called_station_id
+    body["timestamp"] = datetime.utcnow()
+    
+    # Store post-auth data
+    try:
+        await db.post_auth.insert_one(body)
+        return Response(status_code=204)
+    except Exception as e:
+        return Response(status_code=500) 

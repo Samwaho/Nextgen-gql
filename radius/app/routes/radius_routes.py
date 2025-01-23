@@ -16,9 +16,9 @@ def format_radius_response(data: Dict) -> Dict:
     response = {}
     for key, value in data.items():
         if isinstance(value, (str, int, float, bool)):
-            response[key] = {"value": [value]}
+            response[key] = {"value": [str(value)], "op": ":="}
         elif isinstance(value, (list, tuple)):
-            response[key] = {"value": list(value)}
+            response[key] = {"value": [str(x) for x in value], "op": ":="}
         elif isinstance(value, dict):
             response[key] = value
     return response
@@ -53,7 +53,8 @@ async def radius_authorize(
     })
     
     if not customer:
-        raise HTTPException(status_code=404, detail="User not found")
+        # Return empty response to allow authentication to proceed
+        return {}
     
     # Check if customer's package has expired
     if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
@@ -61,12 +62,7 @@ async def radius_authorize(
 
     # Build response according to FreeRADIUS REST module specs
     reply = {
-        "control": {
-            "Cleartext-Password": {"value": [customer["password"]], "op": ":="},
-            "Auth-Type": {"value": ["MS-CHAP"], "op": ":="},
-            "MS-CHAP-Use-NTLM-Auth": {"value": ["yes"], "op": ":="}
-        },
-        "reply": {}
+        "Cleartext-Password": customer["password"]
     }
     
     # If customer has a package, get package details
@@ -93,7 +89,7 @@ async def radius_authorize(
             
             # Add profile attributes with proper format
             for attr in profile.to_radius_attributes():
-                reply["reply"][attr.name] = {"value": [attr.value], "op": "+="}
+                reply[attr.name] = attr.value
     
     return format_radius_response(reply)
 

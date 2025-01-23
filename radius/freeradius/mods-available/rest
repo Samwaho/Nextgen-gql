@@ -1,37 +1,93 @@
 rest {
-    # Connection settings
-    connect_uri = "http://localhost:8000/radius"
-    
-    # Authentication endpoint
-    authenticate {
-        uri = "${..connect_uri}/auth"
-        method = 'post'
-        body = 'json'
-        data = '{ "username": "%{User-Name}", "password": "%{User-Password}" }'
+    tls {
+#       ca_file = ${certdir}/cacert.pem
+#       ca_info_file = ${certdir}/cacert_bundle.pem
+#       ca_path = ${certdir}
+
+#       certificate_file = /path/to/radius.crt
+#       private_key_file = /path/to/radius.key
+#       private_key_password = "supersecret"
+#       random_file = /dev/urandom
+
+#       check_cert = yes
+#       check_cert_cn = yes
     }
-    
-    # Authorization endpoint
+
+    connect_uri = "http://127.0.0.1:9000/radius"
+    connect_timeout = 4.0
+
     authorize {
         uri = "${..connect_uri}/authorize"
         method = 'post'
         body = 'json'
-        data = '{ "username": "%{User-Name}" }'
+        data = '{
+            "username": "%{User-Name}",
+            "called_station_id": "%{Called-Station-Id}",
+            "calling_station_id": "%{Calling-Station-Id}",
+            "nas_identifier": "%{NAS-Identifier}",
+            "nas_port_type": "%{NAS-Port-Type}",
+            "service_type": "%{Service-Type}"
+        }'
     }
-    
-    # Pool settings
+
+    authenticate {
+        uri = "${..connect_uri}/auth"
+        method = 'post'
+        body = 'json'
+        data = '{
+            "username": "%{User-Name}",
+            "password": "%{User-Password}",
+            "called_station_id": "%{Called-Station-Id}",
+            "calling_station_id": "%{Calling-Station-Id}"
+        }'
+    }
+
+    accounting {
+        uri = "${..connect_uri}/user/%{User-Name}/sessions/%{Acct-Unique-Session-Id}?action=accounting"
+        method = 'post'
+        body = 'json'
+        data = '{
+            "acct_status_type": "%{Acct-Status-Type}",
+            "acct_session_id": "%{Acct-Session-Id}",
+            "acct_unique_session_id": "%{Acct-Unique-Session-Id}",
+            "username": "%{User-Name}",
+            "nas_ip_address": "%{NAS-IP-Address}",
+            "nas_port": "%{NAS-Port}",
+            "nas_port_type": "%{NAS-Port-Type}",
+            "nas_identifier": "%{NAS-Identifier}",
+            "called_station_id": "%{Called-Station-Id}",
+            "calling_station_id": "%{Calling-Station-Id}",
+            "acct_input_octets": "%{Acct-Input-Octets}",
+            "acct_output_octets": "%{Acct-Output-Octets}",
+            "acct_session_time": "%{Acct-Session-Time}",
+            "acct_input_packets": "%{Acct-Input-Packets}",
+            "acct_output_packets": "%{Acct-Output-Packets}",
+            "acct_terminate_cause": "%{Acct-Terminate-Cause}",
+            "event_timestamp": "%{Event-Timestamp}"
+        }'
+    }
+
+    post-auth {
+        uri = "${..connect_uri}/user/%{User-Name}/mac/%{Called-Station-Id}?action=post-auth"
+        method = 'post'
+        body = 'json'
+        data = '{
+            "username": "%{User-Name}",
+            "called_station_id": "%{Called-Station-Id}",
+            "calling_station_id": "%{Calling-Station-Id}",
+            "packet_type": "%{response:Packet-Type}",
+            "reply_message": "%{reply:Reply-Message}"
+        }'
+    }
+
     pool {
-        start = 5
-        min = 4
-        max = 20
-        spare = 3
+        start = ${thread[pool].start_servers}
+        min = ${thread[pool].min_spare_servers}
+        max = ${thread[pool].max_servers}
+        spare = ${thread[pool].max_spare_servers}
         uses = 0
         retry_delay = 30
         lifetime = 0
         idle_timeout = 60
     }
-    
-    # HTTP settings
-    http_header = "Content-Type: application/json"
-    timeout = 5.0
-    connect_timeout = 5.0
 } 

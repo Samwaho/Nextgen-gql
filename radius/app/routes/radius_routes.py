@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
-from typing import Dict
+from typing import Dict, Optional
 from ..models.radius_models import RadiusProfile
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime
@@ -11,37 +11,61 @@ router = APIRouter(prefix="/radius", tags=["radius"])
 async def get_database() -> AsyncIOMotorDatabase:
     return radius_db.get_database()
 
-@router.get("/user/{username}/mac/{called_station_id}")
-async def radius_authenticate(
+def format_radius_response(data: Dict) -> Dict:
+    """Format response according to FreeRADIUS REST module specs"""
+    response = {}
+    for key, value in data.items():
+        if isinstance(value, (str, int, float, bool)):
+            response[key] = {"value": [value]}
+        elif isinstance(value, (list, tuple)):
+            response[key] = {"value": list(value)}
+        elif isinstance(value, dict):
+            response[key] = value
+    return response
+
+@router.post("/authorize")
+async def radius_authorize(
     request: Request,
-    username: str,
-    called_station_id: str,
-    action: str,
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
     """
-    FreeRADIUS authentication/authorization endpoint
-    GET /user/{username}/mac/{called_station_id}?action=authenticate|authorize
+    FreeRADIUS authorization endpoint
+    POST /radius/authorize
     """
-    if action not in ["authenticate", "authorize"]:
-        raise HTTPException(status_code=400, detail="Invalid action")
+    try:
+        body = await request.json()
+    except:
+        body = {}
+    
+    username = body.get("username", "")
+    if not username:
+        # Extract from User-Name if not in body
+        form = await request.form()
+        username = form.get("User-Name", "")
+    
+    if not username:
+        raise HTTPException(status_code=400, detail="Username required")
     
     # Find customer by username
     customer = await db.customers.find_one({
         "username": username,
-        "status": "active"  # Only authenticate active customers
+        "status": "active"  # Only authorize active customers
     })
     
     if not customer:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=404, detail="User not found")
     
     # Check if customer's package has expired
     if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
-        raise HTTPException(status_code=401, detail="Package expired")
+        raise HTTPException(status_code=403, detail="Package expired")
 
-    # Start with basic reply structure
+    # Build response according to FreeRADIUS REST module specs
     reply = {
-        "control:Cleartext-Password": customer["password"],
+        "control": {
+            "Cleartext-Password": {"value": [customer["password"]], "op": ":="},
+            "Auth-Type": {"value": ["MS-CHAP"], "op": ":="},
+            "MS-CHAP-Use-NTLM-Auth": {"value": ["yes"], "op": ":="}
+        },
         "reply": {}
     }
     
@@ -67,21 +91,59 @@ async def radius_authenticate(
                 vlan_id=package.get("vlan_id")
             )
             
-            # Add profile attributes
+            # Add profile attributes with proper format
             for attr in profile.to_radius_attributes():
-                reply["reply"][attr.name] = attr.value
+                reply["reply"][attr.name] = {"value": [attr.value], "op": "+="}
     
-    # Add MS-CHAP specific attributes
-    if action == "authorize":
-        reply["control:Auth-Type"] = "MS-CHAP"
-        reply["control:MS-CHAP-Use-NTLM-Auth"] = "yes"
+    return format_radius_response(reply)
+
+@router.post("/auth")
+async def radius_authenticate(
+    request: Request,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    FreeRADIUS authentication endpoint
+    POST /radius/auth
+    """
+    try:
+        body = await request.json()
+    except:
+        body = {}
     
-    return reply
+    # Try to get credentials from JSON body first, then form data
+    username = body.get("username")
+    password = body.get("password")
+    
+    if not username or not password:
+        form = await request.form()
+        username = form.get("User-Name")
+        password = form.get("User-Password")
+    
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username and password required")
+    
+    # Find customer by username and password
+    customer = await db.customers.find_one({
+        "username": username,
+        "password": password,
+        "status": "active"
+    })
+    
+    if not customer:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Check if customer's package has expired
+    if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
+        raise HTTPException(status_code=401, detail="Package expired")
+    
+    return Response(status_code=204)
 
 @router.post("/user/{username}/sessions/{session_id}")
 async def radius_accounting(
     username: str,
     session_id: str,
+    request: Request,
     action: str,
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
@@ -92,7 +154,18 @@ async def radius_accounting(
     if action not in ["preacct", "accounting"]:
         raise HTTPException(status_code=400, detail="Invalid action")
     
-    # For now, just acknowledge the accounting request
+    try:
+        body = await request.json()
+    except:
+        body = {}
+        
+    # Get accounting data from form if not in JSON
+    if not body:
+        form = await request.form()
+        body = dict(form)
+    
+    # TODO: Store accounting data in database
+    # For now, just acknowledge the request
     return Response(status_code=204)
 
 @router.post("/user/{username}/mac/{called_station_id}")
@@ -100,6 +173,7 @@ async def radius_post_auth(
     username: str,
     called_station_id: str,
     action: str,
+    request: Request,
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
     """
@@ -109,5 +183,16 @@ async def radius_post_auth(
     if action not in ["post-auth", "pre-proxy", "post-proxy"]:
         raise HTTPException(status_code=400, detail="Invalid action")
     
-    # For now, just acknowledge the post-auth request
+    try:
+        body = await request.json()
+    except:
+        body = {}
+        
+    # Get post-auth data from form if not in JSON
+    if not body:
+        form = await request.form()
+        body = dict(form)
+    
+    # TODO: Handle post-auth data
+    # For now, just acknowledge the request
     return Response(status_code=204) 

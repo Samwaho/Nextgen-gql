@@ -22,10 +22,8 @@ async def get_database() -> AsyncIOMotorDatabase:
 
 def format_radius_response(data: Dict) -> Dict:
     """Format response according to FreeRADIUS REST module specs"""
-    response = {
-        "control": {},
-        "reply": {}
-    }
+    # FreeRADIUS expects a flat structure with control:XXX and reply:XXX
+    response = {}
     
     # Control attributes that should go in the control section
     control_attrs = {
@@ -39,14 +37,14 @@ def format_radius_response(data: Dict) -> Dict:
     for key, value in data.items():
         if key in control_attrs:
             if isinstance(value, dict):
-                response["control"][key] = value
+                response[f"control:{key}"] = value
             else:
-                response["control"][key] = {"value": [str(value)], "op": ":="}
+                response[f"control:{key}"] = {"value": [str(value)], "op": ":="}
         else:
             if isinstance(value, dict):
-                response["reply"][key] = value
+                response[f"reply:{key}"] = value
             else:
-                response["reply"][key] = {"value": [str(value)], "op": ":="}
+                response[f"reply:{key}"] = {"value": [str(value)], "op": ":="}
     
     return response
 
@@ -106,8 +104,7 @@ async def radius_authorize(
 
     # Build response according to FreeRADIUS REST module specs
     reply = {
-        "Cleartext-Password": customer["password"],
-        "Auth-Type": "MS-CHAP"  # Explicitly set Auth-Type for MS-CHAP
+        "Cleartext-Password": customer["password"]
     }
     
     # If customer has a package, get package details

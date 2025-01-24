@@ -3,6 +3,8 @@ from .config.database import db
 import logging
 from .routes import radius_routes
 from pymongo import ASCENDING, DESCENDING
+from motor.motor_asyncio import AsyncIOMotorClient
+from .config import settings
 
 # Configure logging
 logging.basicConfig(
@@ -17,65 +19,65 @@ app = FastAPI(title="Radius API")
 async def create_collections_and_indexes():
     """Create collections and indexes if they don't exist"""
     try:
-        db_instance = db.get_database()
+        # Create accounting collection with unique index
+        await db.create_collection("accounting")
+        await db.accounting.create_index([
+            ("username", ASCENDING),
+            ("session_id", ASCENDING),
+            ("status", ASCENDING),
+            ("timestamp", DESCENDING)
+        ], unique=True)
         
-        # Create accounting collection with indexes
-        await db_instance.create_collection("accounting")
-        # Primary indexes for agency-based queries
-        await db_instance.accounting.create_index([
+        # Create indexes for efficient querying
+        await db.accounting.create_index([
             ("agency", ASCENDING),
             ("timestamp", DESCENDING)
         ])
-        await db_instance.accounting.create_index([
+        await db.accounting.create_index([
             ("agency", ASCENDING),
             ("username", ASCENDING)
         ])
-        await db_instance.accounting.create_index([
+        await db.accounting.create_index([
             ("agency", ASCENDING),
             ("customer_id", ASCENDING)
         ])
-        # Secondary indexes for specific queries
-        await db_instance.accounting.create_index([("session_id", ASCENDING)])
-        await db_instance.accounting.create_index([("status", ASCENDING)])
-        await db_instance.accounting.create_index([
-            ("agency", ASCENDING),
-            ("username", ASCENDING),
-            ("timestamp", DESCENDING)
-        ])
-        logger.info("Created accounting collection and indexes")
         
+        logger.info("Created accounting collection and indexes")
+    except Exception as e:
+        if "already exists" not in str(e):
+            logger.error(f"Error creating accounting collection: {e}")
+            
+    try:
         # Create post_auth collection with indexes
-        await db_instance.create_collection("post_auth")
-        # Primary indexes for agency-based queries
-        await db_instance.post_auth.create_index([
+        await db.create_collection("post_auth")
+        await db.post_auth.create_index([
             ("agency", ASCENDING),
             ("timestamp", DESCENDING)
         ])
-        await db_instance.post_auth.create_index([
+        await db.post_auth.create_index([
             ("agency", ASCENDING),
             ("username", ASCENDING)
         ])
-        # Secondary indexes for specific queries
-        await db_instance.post_auth.create_index([("called_station_id", ASCENDING)])
-        await db_instance.post_auth.create_index([
-            ("agency", ASCENDING),
-            ("username", ASCENDING),
-            ("timestamp", DESCENDING)
-        ])
         logger.info("Created post_auth collection and indexes")
-        
     except Exception as e:
-        # Collection might already exist - that's okay
-        if not "already exists" in str(e):
-            logger.error(f"Error creating collections: {str(e)}")
-            raise
+        if "already exists" not in str(e):
+            logger.error(f"Error creating post_auth collection: {e}")
 
 # Database connection events
 @app.on_event("startup")
 async def startup_db_client():
-    logger.info("Starting up Radius API")
-    await db.connect_to_database()
-    await create_collections_and_indexes()
+    """Initialize database connection and create collections"""
+    try:
+        app.mongodb_client = AsyncIOMotorClient(settings.DB_URL)
+        app.mongodb = app.mongodb_client[settings.DB_NAME]
+        
+        # Create collections and indexes
+        await create_collections_and_indexes()
+        
+        logger.info("Connected to MongoDB")
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        raise e
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

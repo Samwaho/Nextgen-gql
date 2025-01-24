@@ -249,6 +249,15 @@ async def radius_accounting(
         if not customer:
             logger.error(f"Customer not found for accounting: {username}")
             return Response(status_code=404)
+
+        def safe_int(value, default=0):
+            """Safely convert value to int, return default if empty or invalid"""
+            if not value or value == "":
+                return default
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return default
         
         # Structure accounting data
         accounting_data = {
@@ -258,13 +267,13 @@ async def radius_accounting(
             "agency": customer["agency"],
             "package": customer.get("package"),
             "status": status,
-            "session_time": int(body.get("Acct-Session-Time", body.get("session_time", 0))),
-            "input_octets": int(body.get("Acct-Input-Octets", body.get("input_octets", 0))),
-            "output_octets": int(body.get("Acct-Output-Octets", body.get("output_octets", 0))),
-            "input_packets": int(body.get("Acct-Input-Packets", body.get("input_packets", 0))),
-            "output_packets": int(body.get("Acct-Output-Packets", body.get("output_packets", 0))),
-            "input_gigawords": int(body.get("Acct-Input-Gigawords", body.get("input_gigawords", 0))),
-            "output_gigawords": int(body.get("Acct-Output-Gigawords", body.get("output_gigawords", 0))),
+            "session_time": safe_int(body.get("Acct-Session-Time", body.get("session_time", 0))),
+            "input_octets": safe_int(body.get("Acct-Input-Octets", body.get("input_octets", 0))),
+            "output_octets": safe_int(body.get("Acct-Output-Octets", body.get("output_octets", 0))),
+            "input_packets": safe_int(body.get("Acct-Input-Packets", body.get("input_packets", 0))),
+            "output_packets": safe_int(body.get("Acct-Output-Packets", body.get("output_packets", 0))),
+            "input_gigawords": safe_int(body.get("Acct-Input-Gigawords", body.get("input_gigawords", 0))),
+            "output_gigawords": safe_int(body.get("Acct-Output-Gigawords", body.get("output_gigawords", 0))),
             "called_station_id": body.get("Called-Station-Id", body.get("called_station_id", "")),
             "calling_station_id": body.get("Calling-Station-Id", body.get("calling_station_id", "")),
             "terminate_cause": body.get("Acct-Terminate-Cause", body.get("terminate_cause", "")),
@@ -275,8 +284,8 @@ async def radius_accounting(
             "service_type": body.get("Service-Type", body.get("service_type", "")),
             "framed_protocol": body.get("Framed-Protocol", body.get("framed_protocol", "")),
             "framed_ip_address": body.get("Framed-IP-Address", body.get("framed_ip_address", "")),
-            "idle_timeout": int(body.get("Idle-Timeout", body.get("idle_timeout", 0))),
-            "session_timeout": int(body.get("Session-Timeout", body.get("session_timeout", 0))),
+            "idle_timeout": safe_int(body.get("Idle-Timeout", body.get("idle_timeout", 0))),
+            "session_timeout": safe_int(body.get("Session-Timeout", body.get("session_timeout", 0))),
             "mikrotik_rate_limit": body.get("Mikrotik-Rate-Limit", body.get("mikrotik_rate_limit", "")),
             "timestamp": datetime.utcnow()
         }

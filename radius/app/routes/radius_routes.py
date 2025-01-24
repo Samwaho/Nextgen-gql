@@ -212,6 +212,130 @@ async def radius_authenticate(
     logger.info(f"Authentication successful for {username}")
     return Response(status_code=204)
 
+@router.post("/accounting")
+async def radius_accounting(
+    request: Request,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    FreeRADIUS accounting endpoint
+    POST /radius/accounting
+    """
+    try:
+        body = await request.json()
+        logger.debug(f"Received accounting data: {json.dumps(body, default=str)}")
+    except:
+        body = {}
+        logger.debug("No JSON body found, trying form data")
+        
+    # Get accounting data from form if not in JSON
+    if not body:
+        form = await request.form()
+        body = dict(form)
+        logger.debug(f"Form data: {json.dumps(body, default=str)}")
+    
+    # Get required fields
+    username = body.get("username")
+    session_id = body.get("session_id")
+    
+    if not username or not session_id:
+        logger.error("Missing username or session_id in accounting request")
+        return Response(status_code=400)
+    
+    # Get customer details
+    customer = await db.get_collection("customers").find_one({
+        "username": username
+    })
+    
+    if not customer:
+        logger.error(f"Customer not found for accounting: {username}")
+        return Response(status_code=404)
+    
+    # Structure accounting data
+    accounting_data = {
+        "username": username,
+        "session_id": session_id,
+        "customer_id": str(customer["_id"]),
+        "agency": customer["agency"],
+        "package": customer.get("package"),
+        "status": body.get("Acct-Status-Type", ""),
+        "session_time": int(body.get("Acct-Session-Time", 0)),
+        "input_octets": int(body.get("Acct-Input-Octets", 0)),
+        "output_octets": int(body.get("Acct-Output-Octets", 0)),
+        "input_packets": int(body.get("Acct-Input-Packets", 0)),
+        "output_packets": int(body.get("Acct-Output-Packets", 0)),
+        "input_gigawords": int(body.get("Acct-Input-Gigawords", 0)),
+        "output_gigawords": int(body.get("Acct-Output-Gigawords", 0)),
+        "called_station_id": body.get("Called-Station-Id", ""),
+        "calling_station_id": body.get("Calling-Station-Id", ""),
+        "terminate_cause": body.get("Acct-Terminate-Cause", ""),
+        "nas_ip_address": body.get("NAS-IP-Address", ""),
+        "nas_identifier": body.get("NAS-Identifier", ""),
+        "nas_port": body.get("NAS-Port", ""),
+        "nas_port_type": body.get("NAS-Port-Type", ""),
+        "service_type": body.get("Service-Type", ""),
+        "framed_protocol": body.get("Framed-Protocol", ""),
+        "framed_ip_address": body.get("Framed-IP-Address", ""),
+        "timestamp": datetime.utcnow(),
+        "raw_data": body  # Store complete raw data for reference
+    }
+    
+    # Calculate total bytes (including gigawords)
+    total_input = (accounting_data["input_gigawords"] * (2**32)) + accounting_data["input_octets"]
+    total_output = (accounting_data["output_gigawords"] * (2**32)) + accounting_data["output_octets"]
+    
+    # Add calculated fields
+    accounting_data.update({
+        "total_input_bytes": total_input,
+        "total_output_bytes": total_output,
+        "total_bytes": total_input + total_output,
+        "input_mbytes": round(total_input / (1024 * 1024), 2),
+        "output_mbytes": round(total_output / (1024 * 1024), 2),
+        "total_mbytes": round((total_input + total_output) / (1024 * 1024), 2),
+        "session_time_hours": round(accounting_data["session_time"] / 3600, 2)
+    })
+    
+    # Store accounting data
+    try:
+        # Store in accounting collection
+        await db.get_collection("accounting").insert_one(accounting_data)
+        
+        # Update customer's last_seen and usage_stats if this is a stop record
+        if accounting_data["status"] == "Stop":
+            update_data = {
+                "last_seen": accounting_data["timestamp"],
+                "last_session": {
+                    "session_id": session_id,
+                    "start_time": accounting_data["timestamp"] - timedelta(seconds=accounting_data["session_time"]),
+                    "end_time": accounting_data["timestamp"],
+                    "duration": accounting_data["session_time"],
+                    "input_bytes": total_input,
+                    "output_bytes": total_output,
+                    "terminate_cause": accounting_data["terminate_cause"]
+                }
+            }
+            
+            # Update customer's usage stats
+            await db.get_collection("customers").update_one(
+                {"_id": customer["_id"]},
+                {
+                    "$set": update_data,
+                    "$inc": {
+                        "total_sessions": 1,
+                        "total_online_time": accounting_data["session_time"],
+                        "total_input_bytes": total_input,
+                        "total_output_bytes": total_output
+                    }
+                }
+            )
+        
+        logger.info(f"Stored accounting data for {username}, session {session_id}, type {accounting_data['status']}")
+        return Response(status_code=204)
+        
+    except Exception as e:
+        logger.error(f"Failed to store accounting data: {str(e)}")
+        return Response(status_code=500)
+
 @router.post("/user/{username}/sessions/{session_id}")
 async def radius_accounting(
     username: str,

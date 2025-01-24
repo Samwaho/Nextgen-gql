@@ -3,9 +3,14 @@ from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 from ..config.database import db
-from ..schemas.agency_schemas import Agency, AgencyInput, AgencyUpdateInput
+from ..schemas.agency_schemas import Agency, AgencyInput, AgencyUpdateInput, MpesaEnvironment, MpesaTransactionType
 from ..utils.decorators import login_required, role_required
+from ..utils.mpesa import MpesaIntegration
+from ..utils.encryption import encrypt_mpesa_credentials, decrypt_mpesa_credentials
 from strawberry.types import Info
+import requests
+import base64
+import json
 
 async def get_agencies() -> List[Agency]:
     collection = db.get_collection("agencies")
@@ -23,6 +28,13 @@ async def get_agencies() -> List[Agency]:
             description=agency.get("description"),
             mpesa_shortcode=agency.get("mpesa_shortcode"),
             mpesa_env=agency.get("mpesa_env"),
+            mpesa_b2c_shortcode=agency.get("mpesa_b2c_shortcode"),
+            mpesa_b2b_shortcode=agency.get("mpesa_b2b_shortcode"),
+            mpesa_initiator_name=agency.get("mpesa_initiator_name"),
+            mpesa_transaction_types=agency.get("mpesa_transaction_types"),
+            mpesa_callback_url=agency.get("mpesa_callback_url"),
+            mpesa_timeout_url=agency.get("mpesa_timeout_url"),
+            mpesa_result_url=agency.get("mpesa_result_url"),
             created_at=agency.get("created_at", datetime.utcnow()),
             updated_at=agency.get("updated_at")
         ) for agency in agencies_data
@@ -45,6 +57,13 @@ async def get_agency(id: str) -> Optional[Agency]:
                 description=agency.get("description"),
                 mpesa_shortcode=agency.get("mpesa_shortcode"),
                 mpesa_env=agency.get("mpesa_env"),
+                mpesa_b2c_shortcode=agency.get("mpesa_b2c_shortcode"),
+                mpesa_b2b_shortcode=agency.get("mpesa_b2b_shortcode"),
+                mpesa_initiator_name=agency.get("mpesa_initiator_name"),
+                mpesa_transaction_types=agency.get("mpesa_transaction_types"),
+                mpesa_callback_url=agency.get("mpesa_callback_url"),
+                mpesa_timeout_url=agency.get("mpesa_timeout_url"),
+                mpesa_result_url=agency.get("mpesa_result_url"),
                 created_at=agency.get("created_at", datetime.utcnow()),
                 updated_at=agency.get("updated_at")
             )
@@ -57,7 +76,7 @@ async def create_agency(info: Info, agency_input: AgencyInput) -> Agency:
     users_collection = db.get_collection("users")
     now = datetime.utcnow()
     
-    # Create the agency
+    # Create the agency with additional M-Pesa fields
     agency_data = {
         "name": agency_input.name,
         "address": agency_input.address,
@@ -72,13 +91,32 @@ async def create_agency(info: Info, agency_input: AgencyInput) -> Agency:
         "mpesa_shortcode": agency_input.mpesa_shortcode,
         "mpesa_passkey": agency_input.mpesa_passkey,
         "mpesa_env": agency_input.mpesa_env,
+        "mpesa_b2c_shortcode": agency_input.mpesa_b2c_shortcode,
+        "mpesa_b2b_shortcode": agency_input.mpesa_b2b_shortcode,
+        "mpesa_initiator_name": agency_input.mpesa_initiator_name,
+        "mpesa_initiator_password": agency_input.mpesa_initiator_password,
+        "mpesa_transaction_types": agency_input.mpesa_transaction_types,
+        "mpesa_callback_url": agency_input.mpesa_callback_url,
+        "mpesa_timeout_url": agency_input.mpesa_timeout_url,
+        "mpesa_result_url": agency_input.mpesa_result_url,
         "created_at": now,
         "updated_at": now
     }
     
+    # Encrypt sensitive M-Pesa credentials before saving
+    agency_data = encrypt_mpesa_credentials(agency_data)
+    
     result = await collection.insert_one(agency_data)
     agency_id = str(result.inserted_id)
     agency_data["id"] = agency_id
+    
+    # Initialize M-Pesa integration with decrypted credentials
+    if agency_input.mpesa_consumer_key and agency_input.mpesa_shortcode:
+        decrypted_data = decrypt_mpesa_credentials(agency_data)
+        mpesa = MpesaIntegration(decrypted_data)
+        access_token = await mpesa.get_access_token()
+        if access_token:
+            await mpesa.register_urls(access_token)
     
     # Update the authenticated user with the new agency ID
     user_id = ObjectId(info.context.user_id)
@@ -103,6 +141,13 @@ async def create_agency(info: Info, agency_input: AgencyInput) -> Agency:
         description=agency_data.get("description"),
         mpesa_shortcode=agency_data.get("mpesa_shortcode"),
         mpesa_env=agency_data.get("mpesa_env"),
+        mpesa_b2c_shortcode=agency_data.get("mpesa_b2c_shortcode"),
+        mpesa_b2b_shortcode=agency_data.get("mpesa_b2b_shortcode"),
+        mpesa_initiator_name=agency_data.get("mpesa_initiator_name"),
+        mpesa_transaction_types=agency_data.get("mpesa_transaction_types"),
+        mpesa_callback_url=agency_data.get("mpesa_callback_url"),
+        mpesa_timeout_url=agency_data.get("mpesa_timeout_url"),
+        mpesa_result_url=agency_data.get("mpesa_result_url"),
         created_at=agency_data["created_at"],
         updated_at=agency_data["updated_at"]
     )
@@ -117,11 +162,17 @@ async def update_agency(id: str, agency_input: AgencyUpdateInput) -> Optional[Ag
     for field in [
         "name", "address", "phone", "email", "website", "logo", "banner",
         "description", "mpesa_consumer_key", "mpesa_consumer_secret",
-        "mpesa_shortcode", "mpesa_passkey", "mpesa_env"
+        "mpesa_shortcode", "mpesa_passkey", "mpesa_env", "mpesa_b2c_shortcode",
+        "mpesa_b2b_shortcode", "mpesa_initiator_name", "mpesa_initiator_password",
+        "mpesa_transaction_types", "mpesa_callback_url", "mpesa_timeout_url",
+        "mpesa_result_url"
     ]:
-        value = getattr(agency_input, field)
+        value = getattr(agency_input, field, None)
         if value is not None:
             update_data[field] = value
+    
+    # Encrypt sensitive M-Pesa credentials if they are being updated
+    update_data = encrypt_mpesa_credentials(update_data)
     
     try:
         if update_data:
@@ -143,6 +194,13 @@ async def update_agency(id: str, agency_input: AgencyUpdateInput) -> Optional[Ag
                     description=result.get("description"),
                     mpesa_shortcode=result.get("mpesa_shortcode"),
                     mpesa_env=result.get("mpesa_env"),
+                    mpesa_b2c_shortcode=result.get("mpesa_b2c_shortcode"),
+                    mpesa_b2b_shortcode=result.get("mpesa_b2b_shortcode"),
+                    mpesa_initiator_name=result.get("mpesa_initiator_name"),
+                    mpesa_transaction_types=result.get("mpesa_transaction_types"),
+                    mpesa_callback_url=result.get("mpesa_callback_url"),
+                    mpesa_timeout_url=result.get("mpesa_timeout_url"),
+                    mpesa_result_url=result.get("mpesa_result_url"),
                     created_at=result.get("created_at", datetime.utcnow()),
                     updated_at=result.get("updated_at")
                 )

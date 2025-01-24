@@ -1,6 +1,18 @@
 import strawberry
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+from enum import Enum
+
+@strawberry.enum
+class MpesaEnvironment(Enum):
+    SANDBOX = "sandbox"
+    PRODUCTION = "production"
+
+@strawberry.enum
+class MpesaTransactionType(Enum):
+    C2B = "c2b"
+    B2C = "b2c"
+    B2B = "b2b"
 
 @strawberry.type
 class Agency:
@@ -15,10 +27,17 @@ class Agency:
     description: Optional[str] = None
     mpesa_shortcode: Optional[str] = None
     mpesa_env: Optional[str] = None
+    mpesa_b2c_shortcode: Optional[str] = None
+    mpesa_b2b_shortcode: Optional[str] = None
+    mpesa_initiator_name: Optional[str] = None
+    mpesa_transaction_types: Optional[List[str]] = None
+    mpesa_callback_url: Optional[str] = None
+    mpesa_timeout_url: Optional[str] = None
+    mpesa_result_url: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     # Sensitive fields excluded from type
-    # mpesa_consumer_key, mpesa_consumer_secret, mpesa_passkey
+    # mpesa_consumer_key, mpesa_consumer_secret, mpesa_passkey, mpesa_initiator_password
 
 @strawberry.input
 class AgencyInput:
@@ -35,6 +54,14 @@ class AgencyInput:
     mpesa_shortcode: Optional[str] = None
     mpesa_passkey: Optional[str] = None
     mpesa_env: Optional[str] = None
+    mpesa_b2c_shortcode: Optional[str] = None
+    mpesa_b2b_shortcode: Optional[str] = None
+    mpesa_initiator_name: Optional[str] = None
+    mpesa_initiator_password: Optional[str] = None
+    mpesa_transaction_types: Optional[List[str]] = None
+    mpesa_callback_url: Optional[str] = None
+    mpesa_timeout_url: Optional[str] = None
+    mpesa_result_url: Optional[str] = None
 
 @strawberry.input
 class AgencyUpdateInput:
@@ -51,3 +78,11 @@ class AgencyUpdateInput:
     mpesa_shortcode: Optional[str] = None
     mpesa_passkey: Optional[str] = None
     mpesa_env: Optional[str] = None
+    mpesa_b2c_shortcode: Optional[str] = None
+    mpesa_b2b_shortcode: Optional[str] = None
+    mpesa_initiator_name: Optional[str] = None
+    mpesa_initiator_password: Optional[str] = None
+    mpesa_transaction_types: Optional[List[str]] = None
+    mpesa_callback_url: Optional[str] = None
+    mpesa_timeout_url: Optional[str] = None
+    mpesa_result_url: Optional[str] = None

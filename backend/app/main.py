@@ -14,6 +14,7 @@ from app.routes.ticket_routes import Query as TicketQuery, Mutation as TicketMut
 from app.middleware.auth_middleware import get_context
 import strawberry
 from app.config.settings import settings
+from .routes.mpesa_callbacks import router as mpesa_router
 
 # Configure logging
 logging.basicConfig(
@@ -61,6 +62,9 @@ app.add_middleware(
 graphql_app = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 app.include_router(auth_router)
+
+# M-Pesa callback endpoints
+app.include_router(mpesa_router)
 
 @app.on_event("startup")
 async def startup_db_client():

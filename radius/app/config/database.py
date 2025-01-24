@@ -5,6 +5,7 @@ import asyncio
 from pymongo.errors import ConnectionFailure, ConfigurationError, ServerSelectionTimeoutError
 import os
 from dotenv import load_dotenv
+from pymongo import ASCENDING, DESCENDING
 
 # Load environment variables
 load_dotenv()
@@ -39,6 +40,9 @@ class Database:
                 # Verify connection
                 await cls.client.admin.command('ping')
                 logger.info("Successfully connected to MongoDB")
+                
+                # Initialize collections and indexes
+                await cls.create_collections_and_indexes()
                 return
                 
             except (ConnectionFailure, ConfigurationError, ServerSelectionTimeoutError) as e:
@@ -52,6 +56,62 @@ class Database:
             except Exception as e:
                 logger.error(f"Unexpected database error: {str(e)}")
                 raise
+
+    @classmethod
+    async def create_collections_and_indexes(cls):
+        """Create collections and indexes if they don't exist"""
+        db = cls.get_database()
+        try:
+            # Create accounting collection with unique index
+            await db.create_collection("accounting")
+            await db.accounting.create_index([
+                ("username", ASCENDING),
+                ("session_id", ASCENDING),
+                ("status", ASCENDING),
+                ("timestamp", DESCENDING)
+            ], unique=True)
+            
+            # Create indexes for efficient querying
+            await db.accounting.create_index([
+                ("agency", ASCENDING),
+                ("timestamp", DESCENDING)
+            ])
+            await db.accounting.create_index([
+                ("agency", ASCENDING),
+                ("username", ASCENDING)
+            ])
+            await db.accounting.create_index([
+                ("agency", ASCENDING),
+                ("customer_id", ASCENDING)
+            ])
+            
+            logger.info("Created accounting collection and indexes")
+        except Exception as e:
+            if "already exists" not in str(e):
+                logger.error(f"Error creating accounting collection: {e}")
+                
+        try:
+            # Create post_auth collection with indexes
+            await db.create_collection("post_auth")
+            await db.post_auth.create_index([
+                ("agency", ASCENDING),
+                ("timestamp", DESCENDING)
+            ])
+            await db.post_auth.create_index([
+                ("agency", ASCENDING),
+                ("username", ASCENDING)
+            ])
+            logger.info("Created post_auth collection and indexes")
+        except Exception as e:
+            if "already exists" not in str(e):
+                logger.error(f"Error creating post_auth collection: {e}")
+
+    @classmethod
+    async def verify_connection(cls):
+        """Verify database connection is healthy"""
+        db = cls.get_database()
+        await db.command("ping")
+        return True
 
     @classmethod
     async def close_database_connection(cls):

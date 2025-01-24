@@ -235,8 +235,8 @@ async def radius_accounting(
         logger.debug(f"Form data: {json.dumps(body, default=str)}")
     
     # Get required fields
-    username = body.get("username")
-    session_id = body.get("session_id")
+    username = body.get("username", body.get("User-Name"))
+    session_id = body.get("session_id", body.get("Acct-Session-Id"))
     
     if not username or not session_id:
         logger.error("Missing username or session_id in accounting request")
@@ -276,6 +276,9 @@ async def radius_accounting(
         "service_type": body.get("Service-Type", ""),
         "framed_protocol": body.get("Framed-Protocol", ""),
         "framed_ip_address": body.get("Framed-IP-Address", ""),
+        "idle_timeout": int(body.get("Idle-Timeout", 0)),
+        "session_timeout": int(body.get("Session-Timeout", 0)),
+        "mikrotik_rate_limit": body.get("Mikrotik-Rate-Limit", ""),
         "timestamp": datetime.utcnow(),
         "raw_data": body  # Store complete raw data for reference
     }
@@ -311,7 +314,9 @@ async def radius_accounting(
                     "duration": accounting_data["session_time"],
                     "input_bytes": total_input,
                     "output_bytes": total_output,
-                    "terminate_cause": accounting_data["terminate_cause"]
+                    "terminate_cause": accounting_data["terminate_cause"],
+                    "framed_ip": accounting_data["framed_ip_address"],
+                    "rate_limit": accounting_data["mikrotik_rate_limit"]
                 }
             }
             

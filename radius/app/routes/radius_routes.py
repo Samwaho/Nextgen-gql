@@ -382,6 +382,11 @@ async def radius_post_auth(
             logger.error("Missing username in post-auth request")
             return Response(status_code=400)
             
+        # Get customer details
+        customer = await db.get_collection("customers").find_one({
+            "username": username
+        })
+        
         # Structure post-auth data
         post_auth_data = {
             "username": username,
@@ -390,7 +395,9 @@ async def radius_post_auth(
             "packet_type": body.get("Packet-Type", body.get("packet_type", "")),
             "reply_message": body.get("Reply-Message", body.get("reply_message", "")),
             "timestamp": datetime.utcnow(),
-            "raw_data": body
+            "raw_data": body,
+            "agency": customer["agency"] if customer else None,
+            "status": "success" if customer else "failed"
         }
         
         # Store post-auth data

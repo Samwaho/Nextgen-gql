@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from .config.database import db
 import logging
 from .routes import radius_routes
+from pymongo import ASCENDING, DESCENDING
 
 # Configure logging
 logging.basicConfig(
@@ -13,11 +14,68 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(title="Radius API")
 
+async def create_collections_and_indexes():
+    """Create collections and indexes if they don't exist"""
+    try:
+        db_instance = db.get_database()
+        
+        # Create accounting collection with indexes
+        await db_instance.create_collection("accounting")
+        # Primary indexes for agency-based queries
+        await db_instance.accounting.create_index([
+            ("agency", ASCENDING),
+            ("timestamp", DESCENDING)
+        ])
+        await db_instance.accounting.create_index([
+            ("agency", ASCENDING),
+            ("username", ASCENDING)
+        ])
+        await db_instance.accounting.create_index([
+            ("agency", ASCENDING),
+            ("customer_id", ASCENDING)
+        ])
+        # Secondary indexes for specific queries
+        await db_instance.accounting.create_index([("session_id", ASCENDING)])
+        await db_instance.accounting.create_index([("status", ASCENDING)])
+        await db_instance.accounting.create_index([
+            ("agency", ASCENDING),
+            ("username", ASCENDING),
+            ("timestamp", DESCENDING)
+        ])
+        logger.info("Created accounting collection and indexes")
+        
+        # Create post_auth collection with indexes
+        await db_instance.create_collection("post_auth")
+        # Primary indexes for agency-based queries
+        await db_instance.post_auth.create_index([
+            ("agency", ASCENDING),
+            ("timestamp", DESCENDING)
+        ])
+        await db_instance.post_auth.create_index([
+            ("agency", ASCENDING),
+            ("username", ASCENDING)
+        ])
+        # Secondary indexes for specific queries
+        await db_instance.post_auth.create_index([("called_station_id", ASCENDING)])
+        await db_instance.post_auth.create_index([
+            ("agency", ASCENDING),
+            ("username", ASCENDING),
+            ("timestamp", DESCENDING)
+        ])
+        logger.info("Created post_auth collection and indexes")
+        
+    except Exception as e:
+        # Collection might already exist - that's okay
+        if not "already exists" in str(e):
+            logger.error(f"Error creating collections: {str(e)}")
+            raise
+
 # Database connection events
 @app.on_event("startup")
 async def startup_db_client():
     logger.info("Starting up Radius API")
     await db.connect_to_database()
+    await create_collections_and_indexes()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

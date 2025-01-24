@@ -307,21 +307,26 @@ async def radius_accounting(
         
         # Store accounting data
         try:
-            # Try to update existing record first
+            # Update or create a single record per username
             result = await db.get_collection("accounting").update_one(
                 {
-                    "username": username,
-                    "session_id": session_id,
-                    "status": status
+                    "username": username  # Only use username as the unique key
                 },
-                {"$set": accounting_data},
+                {
+                    "$set": {
+                        **accounting_data,
+                        "last_update": datetime.utcnow(),
+                        "last_session_id": session_id,
+                        "last_status": status
+                    }
+                },
                 upsert=True
             )
             
             if result.upserted_id:
-                logger.info(f"Created new accounting record for {username}, session {session_id}, type {status}")
+                logger.info(f"Created new accounting record for {username}")
             else:
-                logger.info(f"Updated existing accounting record for {username}, session {session_id}, type {status}")
+                logger.info(f"Updated existing accounting record for {username}")
             
             # Update customer's last_seen and usage_stats if this is a stop record
             if status == "Stop":

@@ -62,27 +62,14 @@ class Database:
         """Create collections and indexes if they don't exist"""
         db = cls.get_database()
         try:
-            # Create accounting collection with unique index
+            # Create accounting collection with unique username index
             await db.create_collection("accounting")
-            await db.accounting.create_index([
-                ("username", ASCENDING),
-                ("session_id", ASCENDING),
-                ("status", ASCENDING),
-                ("timestamp", DESCENDING)
-            ], unique=True)
+            await db.accounting.create_index([("username", ASCENDING)], unique=True)
             
             # Create indexes for efficient querying
             await db.accounting.create_index([
                 ("agency", ASCENDING),
-                ("timestamp", DESCENDING)
-            ])
-            await db.accounting.create_index([
-                ("agency", ASCENDING),
-                ("username", ASCENDING)
-            ])
-            await db.accounting.create_index([
-                ("agency", ASCENDING),
-                ("customer_id", ASCENDING)
+                ("last_update", DESCENDING)
             ])
             
             logger.info("Created accounting collection and indexes")

@@ -146,12 +146,12 @@ async def radius_authorize(
             # Convert package to RadiusProfile
             profile = RadiusProfile(
                 name=package.get("name", "default"),
-                download_speed=int(package["download_speed"] * 1024),  # Convert Mbps to kbps
-                upload_speed=int(package["upload_speed"] * 1024),      # Convert Mbps to kbps
-                burst_download=int(package.get("burst_download", 0) * 1024) if package.get("burst_download") else None,
-                burst_upload=int(package.get("burst_upload", 0) * 1024) if package.get("burst_upload") else None,
-                threshold_download=int(package.get("threshold_download", 0) * 1024) if package.get("threshold_download") else None,
-                threshold_upload=int(package.get("threshold_upload", 0) * 1024) if package.get("threshold_upload") else None,
+                download_speed=package["download_speed"],
+                upload_speed=package["upload_speed"],
+                burst_download=package.get("burst_download"),
+                burst_upload=package.get("burst_upload"),
+                threshold_download=package.get("threshold_download"),
+                threshold_upload=package.get("threshold_upload"),
                 burst_time=package.get("burst_time"),
                 service_type=package.get("service_type"),
                 address_pool=package.get("address_pool"),
@@ -161,24 +161,9 @@ async def radius_authorize(
                 vlan_id=package.get("vlan_id")
             )
             
-            def format_speed(speed_kbps):
-                """Format speed with appropriate k/M suffix"""
-                if speed_kbps >= 1024:
-                    return f"{speed_kbps // 1024}M"
-                return f"{speed_kbps}k"
-            
             # Add profile attributes
             reply.update({
-                "WISPr-Bandwidth-Max-Down": profile.download_speed,
-                "WISPr-Bandwidth-Max-Up": profile.upload_speed,
-                # Add MikroTik specific rate limit - format: upload/download burst-upload/burst-download burst-threshold-upload/burst-threshold-download burst-time/burst-time priority
-                "Mikrotik-Rate-Limit": (
-                    f"{format_speed(profile.upload_speed)}/{format_speed(profile.download_speed)} "
-                    f"{format_speed(profile.burst_upload or profile.upload_speed)}/{format_speed(profile.burst_download or profile.download_speed)} "
-                    f"{format_speed(profile.threshold_upload or profile.upload_speed)}/{format_speed(profile.threshold_download or profile.download_speed)} "
-                    f"{profile.burst_time or '0'}/{profile.burst_time or '0'} "
-                    f"{profile.priority or '8'}"
-                )
+                "Mikrotik-Rate-Limit": profile.get_rate_limit()
             })
             
             # Add additional profile attributes

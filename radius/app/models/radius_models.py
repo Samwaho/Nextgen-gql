@@ -39,21 +39,39 @@ class RadiusProfile(BaseModel):
             raise ValueError('Service type must be one of: pppoe, hotspot, dhcp, static')
         return v.lower() if v else None
 
+    def format_speed(self, speed_mbps: float) -> str:
+        """Format speed in Mbps to MikroTik format with k/M suffix"""
+        speed_kbps = int(speed_mbps * 1024)  # Convert Mbps to kbps
+        if speed_kbps >= 1024:
+            return f"{speed_kbps // 1024}M"
+        return f"{speed_kbps}k"
+
+    def get_rate_limit(self) -> str:
+        """Get MikroTik rate limit string"""
+        # Format base speeds
+        upload = self.format_speed(self.upload_speed)
+        download = self.format_speed(self.download_speed)
+        
+        # Format burst speeds (use base speeds if not specified)
+        burst_up = self.format_speed(self.burst_upload) if self.burst_upload else upload
+        burst_down = self.format_speed(self.burst_download) if self.burst_download else download
+        
+        # Format threshold speeds (use base speeds if not specified)
+        threshold_up = self.format_speed(self.threshold_upload) if self.threshold_upload else upload
+        threshold_down = self.format_speed(self.threshold_download) if self.threshold_download else download
+        
+        # Get burst time and priority
+        burst_time = self.burst_time or '0'
+        priority = self.priority or '8'
+        
+        # Build rate limit string
+        return f"{upload}/{download} {burst_up}/{burst_down} {threshold_up}/{threshold_down} {burst_time}/{burst_time} {priority}"
+
     def to_radius_attributes(self) -> List[RadiusAttribute]:
         attributes = []
         
-        # Basic speed limits with burst configuration
-        rate_limit = f"{self.download_speed}M/{self.upload_speed}M"
-        
-        # Add burst settings if configured
-        if all([self.burst_download, self.burst_upload, 
-               self.threshold_download, self.threshold_upload, self.burst_time]):
-            rate_limit = (f"{rate_limit} "
-                         f"{self.burst_download}M/{self.burst_upload}M "
-                         f"{self.threshold_download}M/{self.threshold_upload}M "
-                         f"{self.burst_time}/{self.burst_time}")
-        
-        attributes.append(RadiusAttribute(name="Mikrotik-Rate-Limit", value=rate_limit))
+        # Add rate limit
+        attributes.append(RadiusAttribute(name="Mikrotik-Rate-Limit", value=self.get_rate_limit()))
         
         # Service type specific attributes
         if self.service_type:

@@ -1,4 +1,4 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
 // Types
 export interface Customer {
@@ -19,6 +19,40 @@ export interface Customer {
   createdAt: string;
   updatedAt: string | null;
   agency?: string;
+}
+
+export interface AccountingData {
+  username: string;
+  sessionId: string;
+  status: string;
+  sessionTime: number;
+  inputOctets: number;
+  outputOctets: number;
+  inputPackets: number;
+  outputPackets: number;
+  inputGigawords: number;
+  outputGigawords: number;
+  calledStationId: string;
+  callingStationId: string;
+  terminateCause: string;
+  nasIpAddress: string;
+  nasIdentifier: string;
+  nasPort: string;
+  nasPortType: string;
+  serviceType: string;
+  framedProtocol: string;
+  framedIpAddress: string;
+  idleTimeout: number;
+  sessionTimeout: number;
+  mikrotikRateLimit: string;
+  timestamp: string;
+  totalInputBytes: number;
+  totalOutputBytes: number;
+  totalBytes: number;
+  inputMbytes: number;
+  outputMbytes: number;
+  totalMbytes: number;
+  sessionTimeHours: number;
 }
 
 export interface CustomerInput {
@@ -86,6 +120,82 @@ export const GET_CUSTOMER = gql`
   }
 `;
 
+export const GET_CUSTOMER_ACCOUNTING = gql`
+  query GetCustomerAccounting($username: String!) {
+    customerAccounting(username: $username) {
+      username
+      sessionId
+      status
+      sessionTime
+      inputOctets
+      outputOctets
+      inputPackets
+      outputPackets
+      inputGigawords
+      outputGigawords
+      calledStationId
+      callingStationId
+      terminateCause
+      nasIpAddress
+      nasIdentifier
+      nasPort
+      nasPortType
+      serviceType
+      framedProtocol
+      framedIpAddress
+      idleTimeout
+      sessionTimeout
+      mikrotikRateLimit
+      timestamp
+      totalInputBytes
+      totalOutputBytes
+      totalBytes
+      inputMbytes
+      outputMbytes
+      totalMbytes
+      sessionTimeHours
+    }
+  }
+`;
+
+export const GET_CUSTOMER_ACCOUNTING_HISTORY = gql`
+  query GetCustomerAccountingHistory($username: String!) {
+    customerAccountingHistory(username: $username) {
+      username
+      sessionId
+      status
+      sessionTime
+      inputOctets
+      outputOctets
+      inputPackets
+      outputPackets
+      inputGigawords
+      outputGigawords
+      calledStationId
+      callingStationId
+      terminateCause
+      nasIpAddress
+      nasIdentifier
+      nasPort
+      nasPortType
+      serviceType
+      framedProtocol
+      framedIpAddress
+      idleTimeout
+      sessionTimeout
+      mikrotikRateLimit
+      timestamp
+      totalInputBytes
+      totalOutputBytes
+      totalBytes
+      inputMbytes
+      outputMbytes
+      totalMbytes
+      sessionTimeHours
+    }
+  }
+`;
+
 // Mutations
 export const CREATE_CUSTOMER = gql`
   mutation CreateCustomer($customerInput: CustomerInput!) {
@@ -141,32 +251,20 @@ export const DELETE_CUSTOMER = gql`
   }
 `;
 
-interface CreateCustomerResponse {
-  createCustomer: Customer;
-}
-
-interface UpdateCustomerResponse {
-  updateCustomer: Customer;
-}
-
-interface DeleteCustomerResponse {
-  deleteCustomer: boolean;
-}
-
-// Example usage functions
+// Custom hooks
 export const useCustomer = () => {
   const [createCustomerMutation, { loading: isCreating }] = useMutation<
-    CreateCustomerResponse,
+    { createCustomer: Customer },
     { customerInput: CustomerInput }
   >(CREATE_CUSTOMER);
 
   const [updateCustomerMutation, { loading: isUpdating }] = useMutation<
-    UpdateCustomerResponse,
+    { updateCustomer: Customer },
     { id: string; customerInput: CustomerUpdateInput }
   >(UPDATE_CUSTOMER);
 
   const [deleteCustomerMutation, { loading: isDeleting }] = useMutation<
-    DeleteCustomerResponse,
+    { deleteCustomer: boolean },
     { id: string }
   >(DELETE_CUSTOMER);
 
@@ -219,5 +317,29 @@ export const useCustomer = () => {
     isCreating,
     isUpdating,
     isDeleting,
+  };
+};
+
+// Hook for fetching accounting data
+export const useCustomerAccounting = (username: string) => {
+  const { data: accountingData, loading: loadingAccounting } = useQuery<
+    { customerAccounting: AccountingData },
+    { username: string }
+  >(GET_CUSTOMER_ACCOUNTING, {
+    variables: { username },
+    pollInterval: 30000, // Poll every 30 seconds
+  });
+
+  const { data: historyData, loading: loadingHistory } = useQuery<
+    { customerAccountingHistory: AccountingData[] },
+    { username: string }
+  >(GET_CUSTOMER_ACCOUNTING_HISTORY, {
+    variables: { username },
+  });
+
+  return {
+    accounting: accountingData?.customerAccounting,
+    accountingHistory: historyData?.customerAccountingHistory || [],
+    isLoading: loadingAccounting || loadingHistory,
   };
 };

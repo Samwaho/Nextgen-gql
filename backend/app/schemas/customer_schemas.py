@@ -9,6 +9,40 @@ class CustomerPackage:
     serviceType: str
 
 @strawberry.type
+class AccountingData:
+    username: str
+    sessionId: str = strawberry.field(name="sessionId")
+    status: str
+    sessionTime: int = strawberry.field(name="sessionTime")
+    inputOctets: int = strawberry.field(name="inputOctets")
+    outputOctets: int = strawberry.field(name="outputOctets")
+    inputPackets: int = strawberry.field(name="inputPackets")
+    outputPackets: int = strawberry.field(name="outputPackets")
+    inputGigawords: int = strawberry.field(name="inputGigawords")
+    outputGigawords: int = strawberry.field(name="outputGigawords")
+    calledStationId: str = strawberry.field(name="calledStationId")
+    callingStationId: str = strawberry.field(name="callingStationId")
+    terminateCause: str = strawberry.field(name="terminateCause")
+    nasIpAddress: str = strawberry.field(name="nasIpAddress")
+    nasIdentifier: str = strawberry.field(name="nasIdentifier")
+    nasPort: str = strawberry.field(name="nasPort")
+    nasPortType: str = strawberry.field(name="nasPortType")
+    serviceType: str = strawberry.field(name="serviceType")
+    framedProtocol: str = strawberry.field(name="framedProtocol")
+    framedIpAddress: str = strawberry.field(name="framedIpAddress")
+    idleTimeout: int = strawberry.field(name="idleTimeout")
+    sessionTimeout: int = strawberry.field(name="sessionTimeout")
+    mikrotikRateLimit: str = strawberry.field(name="mikrotikRateLimit")
+    timestamp: datetime
+    totalInputBytes: int = strawberry.field(name="totalInputBytes")
+    totalOutputBytes: int = strawberry.field(name="totalOutputBytes")
+    totalBytes: int = strawberry.field(name="totalBytes")
+    inputMbytes: float = strawberry.field(name="inputMbytes")
+    outputMbytes: float = strawberry.field(name="outputMbytes")
+    totalMbytes: float = strawberry.field(name="totalMbytes")
+    sessionTimeHours: float = strawberry.field(name="sessionTimeHours")
+
+@strawberry.type
 class Customer:
     id: str
     name: str

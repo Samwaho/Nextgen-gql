@@ -3,7 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 from ..config.database import db
-from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput, CustomerPackage
+from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput, CustomerPackage, AccountingData
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -198,6 +198,95 @@ async def delete_customer(id: str) -> bool:
     except:
         return False
 
+async def get_customer_accounting(username: str) -> Optional[AccountingData]:
+    collection = db.get_collection("accounting")
+    try:
+        accounting = await collection.find_one({"username": username})
+        if accounting:
+            return AccountingData(
+                username=accounting["username"],
+                sessionId=accounting["session_id"],
+                status=accounting["status"],
+                sessionTime=accounting["session_time"],
+                inputOctets=accounting["input_octets"],
+                outputOctets=accounting["output_octets"],
+                inputPackets=accounting["input_packets"],
+                outputPackets=accounting["output_packets"],
+                inputGigawords=accounting["input_gigawords"],
+                outputGigawords=accounting["output_gigawords"],
+                calledStationId=accounting["called_station_id"],
+                callingStationId=accounting["calling_station_id"],
+                terminateCause=accounting["terminate_cause"],
+                nasIpAddress=accounting["nas_ip_address"],
+                nasIdentifier=accounting["nas_identifier"],
+                nasPort=accounting["nas_port"],
+                nasPortType=accounting["nas_port_type"],
+                serviceType=accounting["service_type"],
+                framedProtocol=accounting["framed_protocol"],
+                framedIpAddress=accounting["framed_ip_address"],
+                idleTimeout=accounting["idle_timeout"],
+                sessionTimeout=accounting["session_timeout"],
+                mikrotikRateLimit=accounting["mikrotik_rate_limit"],
+                timestamp=accounting["timestamp"],
+                totalInputBytes=accounting["total_input_bytes"],
+                totalOutputBytes=accounting["total_output_bytes"],
+                totalBytes=accounting["total_bytes"],
+                inputMbytes=accounting["input_mbytes"],
+                outputMbytes=accounting["output_mbytes"],
+                totalMbytes=accounting["total_mbytes"],
+                sessionTimeHours=accounting["session_time_hours"]
+            )
+    except Exception as e:
+        print(f"Error fetching accounting data: {e}")
+        return None
+    return None
+
+async def get_customer_accounting_history(username: str) -> List[AccountingData]:
+    collection = db.get_collection("accounting")
+    try:
+        accounting_records = await collection.find(
+            {"username": username}
+        ).sort("timestamp", -1).to_list(None)
+        
+        return [
+            AccountingData(
+                username=record["username"],
+                sessionId=record["session_id"],
+                status=record["status"],
+                sessionTime=record["session_time"],
+                inputOctets=record["input_octets"],
+                outputOctets=record["output_octets"],
+                inputPackets=record["input_packets"],
+                outputPackets=record["output_packets"],
+                inputGigawords=record["input_gigawords"],
+                outputGigawords=record["output_gigawords"],
+                calledStationId=record["called_station_id"],
+                callingStationId=record["calling_station_id"],
+                terminateCause=record["terminate_cause"],
+                nasIpAddress=record["nas_ip_address"],
+                nasIdentifier=record["nas_identifier"],
+                nasPort=record["nas_port"],
+                nasPortType=record["nas_port_type"],
+                serviceType=record["service_type"],
+                framedProtocol=record["framed_protocol"],
+                framedIpAddress=record["framed_ip_address"],
+                idleTimeout=record["idle_timeout"],
+                sessionTimeout=record["session_timeout"],
+                mikrotikRateLimit=record["mikrotik_rate_limit"],
+                timestamp=record["timestamp"],
+                totalInputBytes=record["total_input_bytes"],
+                totalOutputBytes=record["total_output_bytes"],
+                totalBytes=record["total_bytes"],
+                inputMbytes=record["input_mbytes"],
+                outputMbytes=record["output_mbytes"],
+                totalMbytes=record["total_mbytes"],
+                sessionTimeHours=record["session_time_hours"]
+            ) for record in accounting_records
+        ]
+    except Exception as e:
+        print(f"Error fetching accounting history: {e}")
+        return []
+
 @strawberry.type
 class Query:
     @strawberry.field
@@ -210,6 +299,16 @@ class Query:
     @login_required
     async def customer(self, info: Info, id: str) -> Optional[Customer]:
         return await get_customer(id)
+
+    @strawberry.field
+    @login_required
+    async def customer_accounting(self, info: Info, username: str) -> Optional[AccountingData]:
+        return await get_customer_accounting(username)
+
+    @strawberry.field
+    @login_required
+    async def customer_accounting_history(self, info: Info, username: str) -> List[AccountingData]:
+        return await get_customer_accounting_history(username)
 
 @strawberry.type
 class Mutation:

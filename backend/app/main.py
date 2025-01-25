@@ -11,6 +11,12 @@ from app.routes.customer_routes import Query as CustomerQuery, Mutation as Custo
 from app.routes.inventory_routes import Query as InventoryQuery, Mutation as InventoryMutation
 from app.routes.package_routes import Query as PackageQuery, Mutation as PackageMutation
 from app.routes.ticket_routes import Query as TicketQuery, Mutation as TicketMutation
+from app.routes.mpesa_routes import Query as MpesaQuery, Mutation as MpesaMutation
+from app.schemas.mpesa_schemas import (
+    MpesaTransaction, TransactionFilter, CustomerPaymentInput,
+    TransactionStatus, TransactionType, CommandID, MpesaCallback,
+    MpesaResponse
+)
 from app.middleware.auth_middleware import get_context
 import strawberry
 from app.config.settings import settings
@@ -28,18 +34,31 @@ logger = logging.getLogger(__name__)
 @strawberry.type
 class Query(
     UserQuery, AgencyQuery, EmployeeQuery, CustomerQuery,
-    InventoryQuery, PackageQuery, TicketQuery
+    InventoryQuery, PackageQuery, TicketQuery, MpesaQuery
 ):
     pass
 
 @strawberry.type
 class Mutation(
     UserMutation, AuthMutation, AgencyMutation, EmployeeMutation,
-    CustomerMutation, InventoryMutation, PackageMutation, TicketMutation
+    CustomerMutation, InventoryMutation, PackageMutation, TicketMutation,
+    MpesaMutation
 ):
     pass
 
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+schema = strawberry.Schema(
+    query=Query,
+    mutation=Mutation,
+    types=[
+        MpesaTransaction,
+        TransactionFilter,
+        CustomerPaymentInput,
+        TransactionStatus,
+        TransactionType,
+        CommandID,
+        MpesaCallback
+    ]
+)
 
 # Create FastAPI app
 app = FastAPI(

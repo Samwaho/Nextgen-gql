@@ -8,6 +8,8 @@ import {
   Package,
   UserCog,
   Ticket,
+  DollarSign,
+  Building2,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -51,5 +53,15 @@ export const sidebarData: SidebarItem[] = [
     title: "Support Tickets",
     path: "/main/tickets",
     icon: Ticket,
+  },
+  {
+    title: "Transactions",
+    path: "/main/transactions",
+    icon: DollarSign,
+  },
+  {
+    title: "Agency",
+    path: "/main/agency",
+    icon: Building2,
   },
 ];

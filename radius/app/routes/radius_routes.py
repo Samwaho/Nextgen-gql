@@ -132,7 +132,9 @@ async def radius_authorize(
             # Add profile attributes
             reply.update({
                 "WISPr-Bandwidth-Max-Down": profile.download_speed,
-                "WISPr-Bandwidth-Max-Up": profile.upload_speed
+                "WISPr-Bandwidth-Max-Up": profile.upload_speed,
+                # Add MikroTik specific rate limit
+                "Mikrotik-Rate-Limit": f"{profile.upload_speed}k/{profile.download_speed}k"
             })
             
             # Add additional profile attributes

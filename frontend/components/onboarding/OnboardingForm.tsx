@@ -11,17 +11,21 @@ import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAgency, AgencyInput } from "@/graphql/agency";
+import { useAgency, AgencyInput, Agency } from "@/graphql/agency";
 
 type AgencyProps = z.infer<typeof agencySchema>;
 
-const OnboardingForm = () => {
+interface OnboardingFormProps {
+  initialData?: Agency;
+}
+
+const OnboardingForm = ({ initialData }: OnboardingFormProps) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("general");
   const [showAlert, setShowAlert] = useState(false);
-  const { createAgency, isCreating } = useAgency();
+  const { createAgency, updateAgency, isCreating, isUpdating } = useAgency();
 
   const form = useForm<AgencyProps>({
     resolver: zodResolver(agencySchema),
@@ -46,27 +50,83 @@ const OnboardingForm = () => {
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        address: initialData.address || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
+        website: initialData.website || "",
+        logo: initialData.logo || "",
+        banner: initialData.banner || "",
+        description: initialData.description || "",
+        mpesaShortcode: initialData.mpesaShortcode || "",
+        mpesaEnv: initialData.mpesaEnv || "sandbox",
+        mpesaB2cShortcode: initialData.mpesaB2cShortcode || "",
+        mpesaB2bShortcode: initialData.mpesaB2bShortcode || "",
+        mpesaInitiatorName: initialData.mpesaInitiatorName || "",
+        mpesaConsumerKey: "",
+        mpesaConsumerSecret: "",
+        mpesaPasskey: "",
+        mpesaInitiatorPassword: "",
+      });
+    }
+  }, [initialData, form]);
+
   const onSubmit = async (values: AgencyProps) => {
-    const isFormComplete = Object.values(values).every((value) => value !== "");
-    if (isFormComplete) {
+    // Check only required fields
+    const requiredFields = {
+      name: values.name,
+      email: values.email,
+      mpesaShortcode: values.mpesaShortcode,
+      mpesaEnv: values.mpesaEnv,
+      mpesaInitiatorName: values.mpesaInitiatorName,
+    };
+
+    const isRequiredFieldsComplete = Object.values(requiredFields).every(
+      (value) => value && value !== ""
+    );
+
+    if (isRequiredFieldsComplete) {
       try {
-        await createAgency({
-          ...values,
-          mpesaConsumerKey: values.mpesaConsumerKey,
-          mpesaConsumerSecret: values.mpesaConsumerSecret,
-          mpesaShortcode: values.mpesaShortcode,
-          mpesaPasskey: values.mpesaPasskey,
-          mpesaEnv: values.mpesaEnv,
-          mpesaB2cShortcode: values.mpesaB2cShortcode,
-          mpesaB2bShortcode: values.mpesaB2bShortcode,
-          mpesaInitiatorName: values.mpesaInitiatorName,
-          mpesaInitiatorPassword: values.mpesaInitiatorPassword,
-        } as AgencyInput);
-        toast.success("Agency created successfully");
+        if (initialData) {
+          // For updates, only include fields that have values
+          const updateData: Partial<AgencyInput> = {
+            name: values.name,
+            email: values.email,
+            mpesaShortcode: values.mpesaShortcode,
+            mpesaEnv: values.mpesaEnv,
+            mpesaInitiatorName: values.mpesaInitiatorName,
+          };
+
+          // Only include optional fields if they have values
+          if (values.address) updateData.address = values.address;
+          if (values.phone) updateData.phone = values.phone;
+          if (values.website) updateData.website = values.website;
+          if (values.logo) updateData.logo = values.logo;
+          if (values.banner) updateData.banner = values.banner;
+          if (values.description) updateData.description = values.description;
+          if (values.mpesaConsumerKey) updateData.mpesaConsumerKey = values.mpesaConsumerKey;
+          if (values.mpesaConsumerSecret) updateData.mpesaConsumerSecret = values.mpesaConsumerSecret;
+          if (values.mpesaPasskey) updateData.mpesaPasskey = values.mpesaPasskey;
+          if (values.mpesaB2cShortcode) updateData.mpesaB2cShortcode = values.mpesaB2cShortcode;
+          if (values.mpesaB2bShortcode) updateData.mpesaB2bShortcode = values.mpesaB2bShortcode;
+          if (values.mpesaInitiatorPassword) updateData.mpesaInitiatorPassword = values.mpesaInitiatorPassword;
+
+          await updateAgency(initialData.id, updateData);
+          toast.success("Agency updated successfully");
+        } else {
+          // For creation, include all fields
+          await createAgency({
+            ...values,
+          } as AgencyInput);
+          toast.success("Agency created successfully");
+        }
         router.refresh();
       } catch (error) {
-        console.error("Error creating agency:", error);
-        toast.error("Failed to create agency. Please try again.");
+        console.error("Error saving agency:", error);
+        toast.error("Failed to save agency. Please try again.");
       }
     } else {
       setShowAlert(true);
@@ -161,13 +221,13 @@ const OnboardingForm = () => {
                   control={form.control}
                   name="mpesaConsumerKey"
                   label="M-Pesa Consumer Key"
-                  placeholder="Enter M-Pesa Consumer Key"
+                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Consumer Key"}
                 />
                 <CustomInput
                   control={form.control}
                   name="mpesaConsumerSecret"
                   label="M-Pesa Consumer Secret"
-                  placeholder="Enter M-Pesa Consumer Secret"
+                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Consumer Secret"}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -181,7 +241,7 @@ const OnboardingForm = () => {
                   control={form.control}
                   name="mpesaPasskey"
                   label="M-Pesa Passkey"
-                  placeholder="Enter M-Pesa Passkey"
+                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Passkey"}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -209,7 +269,7 @@ const OnboardingForm = () => {
                   control={form.control}
                   name="mpesaInitiatorPassword"
                   label="M-Pesa Initiator Password"
-                  placeholder="Enter M-Pesa Initiator Password"
+                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Initiator Password"}
                   type="password"
                 />
               </div>
@@ -254,9 +314,9 @@ const OnboardingForm = () => {
           <Button
             className="flex w-full justify-center rounded-md bg-gradient-to-tl from-pink-500 to-purple-600 text-white py-2 px-4 hover:opacity-85"
             type="submit"
-            disabled={isCreating}
+            disabled={isCreating || isUpdating}
           >
-            {isCreating ? (
+            {isCreating || isUpdating ? (
               <div className="flex items-center gap-2">
                 <svg
                   className="animate-spin h-5 w-5 text-white"
@@ -278,10 +338,10 @@ const OnboardingForm = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Creating Agency...
+                {initialData ? "Updating Agency..." : "Creating Agency..."}
               </div>
             ) : (
-              "Create Agency"
+              initialData ? "Update Agency" : "Create Agency"
             )}
           </Button>
         </div>

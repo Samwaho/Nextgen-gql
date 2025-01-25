@@ -2,6 +2,7 @@ import strawberry
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from enum import Enum
+from strawberry.scalars import JSON
 
 @strawberry.enum
 class TransactionStatus(Enum):
@@ -28,10 +29,18 @@ class CommandID(Enum):
     ACCOUNT_BALANCE = "AccountBalance"
 
 @strawberry.type
+class MpesaResponse:
+    success: bool
+    message: str
+    transaction_id: Optional[str] = None
+    reference: Optional[str] = None
+
+@strawberry.type
 class MpesaTransaction:
     id: str
     agency_id: str
     customer_id: Optional[str] = None
+    customer_username: Optional[str] = None
     type: str
     amount: float
     phone: Optional[str] = None
@@ -40,7 +49,7 @@ class MpesaTransaction:
     status: str
     mpesa_receipt: Optional[str] = None
     receiver_shortcode: Optional[str] = None
-    response_data: Optional[Dict[str, Any]] = None
+    response_data: Optional[JSON] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -70,6 +79,20 @@ class CustomerPaymentInput:
     phone: str
     months: int = 1
     remarks: Optional[str] = None
+
+@strawberry.input
+class B2CPaymentInput:
+    phone: str
+    amount: float
+    reference: str
+    remarks: str
+
+@strawberry.input
+class B2BPaymentInput:
+    receiver_shortcode: str
+    amount: float
+    reference: str
+    remarks: str
 
 @strawberry.type
 class MpesaCallback:

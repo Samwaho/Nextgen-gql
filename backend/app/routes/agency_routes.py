@@ -31,10 +31,6 @@ async def get_agencies() -> List[Agency]:
             mpesa_b2c_shortcode=agency.get("mpesa_b2c_shortcode"),
             mpesa_b2b_shortcode=agency.get("mpesa_b2b_shortcode"),
             mpesa_initiator_name=agency.get("mpesa_initiator_name"),
-            mpesa_transaction_types=agency.get("mpesa_transaction_types"),
-            mpesa_callback_url=agency.get("mpesa_callback_url"),
-            mpesa_timeout_url=agency.get("mpesa_timeout_url"),
-            mpesa_result_url=agency.get("mpesa_result_url"),
             created_at=agency.get("created_at", datetime.utcnow()),
             updated_at=agency.get("updated_at")
         ) for agency in agencies_data
@@ -60,10 +56,6 @@ async def get_agency(id: str) -> Optional[Agency]:
                 mpesa_b2c_shortcode=agency.get("mpesa_b2c_shortcode"),
                 mpesa_b2b_shortcode=agency.get("mpesa_b2b_shortcode"),
                 mpesa_initiator_name=agency.get("mpesa_initiator_name"),
-                mpesa_transaction_types=agency.get("mpesa_transaction_types"),
-                mpesa_callback_url=agency.get("mpesa_callback_url"),
-                mpesa_timeout_url=agency.get("mpesa_timeout_url"),
-                mpesa_result_url=agency.get("mpesa_result_url"),
                 created_at=agency.get("created_at", datetime.utcnow()),
                 updated_at=agency.get("updated_at")
             )
@@ -95,10 +87,6 @@ async def create_agency(info: Info, agency_input: AgencyInput) -> Agency:
         "mpesa_b2b_shortcode": agency_input.mpesa_b2b_shortcode,
         "mpesa_initiator_name": agency_input.mpesa_initiator_name,
         "mpesa_initiator_password": agency_input.mpesa_initiator_password,
-        "mpesa_transaction_types": agency_input.mpesa_transaction_types,
-        "mpesa_callback_url": agency_input.mpesa_callback_url,
-        "mpesa_timeout_url": agency_input.mpesa_timeout_url,
-        "mpesa_result_url": agency_input.mpesa_result_url,
         "created_at": now,
         "updated_at": now
     }
@@ -144,10 +132,6 @@ async def create_agency(info: Info, agency_input: AgencyInput) -> Agency:
         mpesa_b2c_shortcode=agency_data.get("mpesa_b2c_shortcode"),
         mpesa_b2b_shortcode=agency_data.get("mpesa_b2b_shortcode"),
         mpesa_initiator_name=agency_data.get("mpesa_initiator_name"),
-        mpesa_transaction_types=agency_data.get("mpesa_transaction_types"),
-        mpesa_callback_url=agency_data.get("mpesa_callback_url"),
-        mpesa_timeout_url=agency_data.get("mpesa_timeout_url"),
-        mpesa_result_url=agency_data.get("mpesa_result_url"),
         created_at=agency_data["created_at"],
         updated_at=agency_data["updated_at"]
     )
@@ -163,9 +147,7 @@ async def update_agency(id: str, agency_input: AgencyUpdateInput) -> Optional[Ag
         "name", "address", "phone", "email", "website", "logo", "banner",
         "description", "mpesa_consumer_key", "mpesa_consumer_secret",
         "mpesa_shortcode", "mpesa_passkey", "mpesa_env", "mpesa_b2c_shortcode",
-        "mpesa_b2b_shortcode", "mpesa_initiator_name", "mpesa_initiator_password",
-        "mpesa_transaction_types", "mpesa_callback_url", "mpesa_timeout_url",
-        "mpesa_result_url"
+        "mpesa_b2b_shortcode", "mpesa_initiator_name", "mpesa_initiator_password"
     ]:
         value = getattr(agency_input, field, None)
         if value is not None:
@@ -206,10 +188,6 @@ async def update_agency(id: str, agency_input: AgencyUpdateInput) -> Optional[Ag
                     mpesa_b2c_shortcode=result.get("mpesa_b2c_shortcode"),
                     mpesa_b2b_shortcode=result.get("mpesa_b2b_shortcode"),
                     mpesa_initiator_name=result.get("mpesa_initiator_name"),
-                    mpesa_transaction_types=result.get("mpesa_transaction_types"),
-                    mpesa_callback_url=result.get("mpesa_callback_url"),
-                    mpesa_timeout_url=result.get("mpesa_timeout_url"),
-                    mpesa_result_url=result.get("mpesa_result_url"),
                     created_at=result.get("created_at", datetime.utcnow()),
                     updated_at=result.get("updated_at")
                 )

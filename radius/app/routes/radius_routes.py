@@ -2,11 +2,12 @@ from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from typing import Dict, Optional
 from ..models.radius_models import RadiusProfile
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from ..config.database import db
 import logging
 import json
+import pytz
 
 # Configure logging
 logging.basicConfig(
@@ -14,6 +15,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("radius_routes")
+
+# Configure timezone
+TIMEZONE = pytz.timezone('Africa/Nairobi')  # East Africa timezone
 
 router = APIRouter(prefix="/radius", tags=["radius"])
 
@@ -214,6 +218,10 @@ async def radius_authenticate(
     logger.info(f"Authentication successful for {username}")
     return Response(status_code=204)
 
+def get_current_time():
+    """Get current time in East Africa timezone"""
+    return datetime.now(TIMEZONE)
+
 @router.post("/accounting")
 async def radius_accounting(
     request: Request,
@@ -261,6 +269,9 @@ async def radius_accounting(
             except (ValueError, TypeError):
                 return default
         
+        # Get current time in East Africa timezone
+        current_time = get_current_time()
+        
         # Structure accounting data
         accounting_data = {
             "username": username,
@@ -289,7 +300,7 @@ async def radius_accounting(
             "idle_timeout": safe_int(body.get("Idle-Timeout", body.get("idle_timeout", 0))),
             "session_timeout": safe_int(body.get("Session-Timeout", body.get("session_timeout", 0))),
             "mikrotik_rate_limit": body.get("Mikrotik-Rate-Limit", body.get("mikrotik_rate_limit", "")),
-            "timestamp": datetime.utcnow()
+            "timestamp": current_time
         }
         
         # Calculate total bytes (including gigawords)
@@ -317,7 +328,7 @@ async def radius_accounting(
                 {
                     "$set": {
                         **accounting_data,
-                        "last_update": datetime.utcnow(),
+                        "last_update": current_time,
                         "last_session_id": session_id,
                         "last_status": status
                     }
@@ -332,12 +343,13 @@ async def radius_accounting(
             
             # Update customer's last_seen and usage_stats if this is a stop record
             if status == "Stop":
+                session_start_time = current_time - timedelta(seconds=accounting_data["session_time"])
                 update_data = {
-                    "last_seen": accounting_data["timestamp"],
+                    "last_seen": current_time,
                     "last_session": {
                         "session_id": session_id,
-                        "start_time": accounting_data["timestamp"] - timedelta(seconds=accounting_data["session_time"]),
-                        "end_time": accounting_data["timestamp"],
+                        "start_time": session_start_time,
+                        "end_time": current_time,
                         "duration": accounting_data["session_time"],
                         "input_bytes": total_input,
                         "output_bytes": total_output,

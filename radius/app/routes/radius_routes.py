@@ -52,6 +52,30 @@ def format_radius_response(data: Dict) -> Dict:
     
     return response
 
+def get_current_time():
+    """Get current time in East Africa timezone"""
+    # Get UTC time first
+    utc_now = datetime.now(timezone.utc)
+    # Convert to East Africa timezone
+    return utc_now.astimezone(TIMEZONE)
+
+def convert_to_timezone(dt):
+    """Convert datetime to East Africa timezone"""
+    if dt is None:
+        return None
+    if isinstance(dt, str):
+        # Parse string to datetime, assuming UTC if no timezone specified
+        try:
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except ValueError:
+            # If parsing fails, assume it's UTC
+            dt = datetime.fromisoformat(dt).replace(tzinfo=timezone.utc)
+    if dt.tzinfo is None:
+        # If datetime has no timezone, assume it's UTC
+        dt = dt.replace(tzinfo=timezone.utc)
+    # Convert to East Africa timezone
+    return dt.astimezone(TIMEZONE)
+
 @router.post("/authorize")
 async def radius_authorize(
     request: Request,
@@ -101,10 +125,9 @@ async def radius_authorize(
     
     # Check if customer's package has expired
     if customer.get("expiry"):
-        expiry_date = customer["expiry"]
-        if isinstance(expiry_date, str):
-            expiry_date = datetime.fromisoformat(expiry_date.replace('Z', '+00:00'))
+        expiry_date = convert_to_timezone(customer["expiry"])
         current_time = get_current_time()
+        
         if current_time > expiry_date:
             logger.warning(f"Customer {username} package expired. Expiry: {expiry_date}, Current: {current_time}")
             return format_radius_response({
@@ -227,10 +250,9 @@ async def radius_authenticate(
     
     # Check if customer's package has expired
     if customer.get("expiry"):
-        expiry_date = customer["expiry"]
-        if isinstance(expiry_date, str):
-            expiry_date = datetime.fromisoformat(expiry_date.replace('Z', '+00:00'))
+        expiry_date = convert_to_timezone(customer["expiry"])
         current_time = get_current_time()
+        
         if current_time > expiry_date:
             logger.warning(f"Customer {username} package expired. Expiry: {expiry_date}, Current: {current_time}")
             return format_radius_response({
@@ -239,10 +261,6 @@ async def radius_authenticate(
     
     logger.info(f"Authentication successful for {username}")
     return Response(status_code=204)
-
-def get_current_time():
-    """Get current time in East Africa timezone"""
-    return datetime.now(TIMEZONE)
 
 @router.post("/accounting")
 async def radius_accounting(
@@ -322,7 +340,8 @@ async def radius_accounting(
             "idle_timeout": safe_int(body.get("Idle-Timeout", body.get("idle_timeout", 0))),
             "session_timeout": safe_int(body.get("Session-Timeout", body.get("session_timeout", 0))),
             "mikrotik_rate_limit": body.get("Mikrotik-Rate-Limit", body.get("mikrotik_rate_limit", "")),
-            "timestamp": current_time
+            "timestamp": current_time,
+            "last_update": current_time
         }
         
         # Calculate total bytes (including gigawords)

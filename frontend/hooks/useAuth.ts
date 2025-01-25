@@ -21,11 +21,15 @@ export const useAuth = () => {
         },
       });
 
-      if (data?.googleAuth.success && data.googleAuth.token) {
-        setAuthToken(data.googleAuth.token.accessToken);
-        return true;
+      if (!data?.googleAuth) {
+        return false;
       }
-      return false;
+
+      if (!data.googleAuth.success || !data.googleAuth.token) {
+        return false;
+      }
+
+      return setAuthToken(data.googleAuth.token.accessToken);
     } catch (error) {
       console.error("Google login error:", error);
       return false;

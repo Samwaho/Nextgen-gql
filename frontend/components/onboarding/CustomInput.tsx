@@ -18,9 +18,10 @@ type Props = {
   name: FieldName;
   label: string;
   placeholder: string;
+  type?: string;
 };
 
-const CustomInput = ({ control, name, label, placeholder }: Props) => {
+const CustomInput = ({ control, name, label, placeholder, type = "text" }: Props) => {
   return (
     <FormField
       control={control}
@@ -29,7 +30,7 @@ const CustomInput = ({ control, name, label, placeholder }: Props) => {
         <FormItem>
           <FormLabel className="dark:text-white">{label}</FormLabel>
           <FormControl>
-            <Input placeholder={placeholder} {...field} />
+            <Input type={type} placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
-import { Loader2Icon, Chrome } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
@@ -72,15 +72,6 @@ const SignInForm = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!baseUrl) {
-      toast.error("Base API URL not configured");
-      return;
-    }
-    window.location.href = `${baseUrl}/auth/google/login`;
-  };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -120,26 +111,6 @@ const SignInForm = () => {
             Forgot your password?
           </Link>
         </div>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full flex items-center justify-center gap-2"
-          onClick={handleGoogleLogin}
-        >
-          <Chrome className="h-5 w-5" />
-          Sign in with Google
-        </Button>
 
         <Button
           className="flex w-full justify-center rounded-md bg-gradient-to-tl from-pink-500 to-purple-600 text-white py-2 px-4 hover:opacity-85"

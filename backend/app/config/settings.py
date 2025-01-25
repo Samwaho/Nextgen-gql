@@ -22,7 +22,6 @@ class Settings(BaseSettings):
     # API URLs
     RADIUS_API_URL: str = os.getenv("RADIUS_API_URL", "http://localhost:9000")
     ROUTEROS_API_URL: str = os.getenv("ROUTEROS_API_URL", "http://localhost/routeros")
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost")
     
     # MikroTik Settings
     MIKROTIK_HOST: str = os.getenv("MIKROTIK_HOST", "")
@@ -41,10 +40,6 @@ class Settings(BaseSettings):
     # Gmail Settings
     GMAIL_USERNAME: Optional[str] = os.getenv("GMAIL_USERNAME")
     GMAIL_APP_PASSWORD: Optional[str] = os.getenv("GMAIL_APP_PASSWORD")
-    
-    # Google OAuth Settings
-    GOOGLE_CLIENT_ID: Optional[str] = os.getenv("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET: Optional[str] = os.getenv("GOOGLE_CLIENT_SECRET")
     
     # Security
     ENCRYPTION_KEY: Optional[str] = os.getenv("ENCRYPTION_KEY")
@@ -78,6 +73,8 @@ class Settings(BaseSettings):
             "SECRET_KEY": self.SECRET_KEY,
             "MONGODB_URL": self.MONGODB_URL,
             "DATABASE_NAME": self.DATABASE_NAME,
+            "GOOGLE_CLIENT_ID": self.GOOGLE_CLIENT_ID,
+            "GOOGLE_CLIENT_SECRET": self.GOOGLE_CLIENT_SECRET,
         }
         
         missing_settings = [key for key, value in required_settings.items() if not value]

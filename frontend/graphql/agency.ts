@@ -13,6 +13,9 @@ export interface Agency {
   description?: string;
   mpesaShortcode?: string;
   mpesaEnv?: string;
+  mpesaB2cShortcode?: string;
+  mpesaB2bShortcode?: string;
+  mpesaInitiatorName?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -31,6 +34,10 @@ export interface AgencyInput {
   mpesaShortcode?: string;
   mpesaPasskey?: string;
   mpesaEnv?: string;
+  mpesaB2cShortcode?: string;
+  mpesaB2bShortcode?: string;
+  mpesaInitiatorName?: string;
+  mpesaInitiatorPassword?: string;
 }
 
 // Queries
@@ -48,6 +55,9 @@ export const GET_AGENCIES = gql`
       description
       mpesaShortcode
       mpesaEnv
+      mpesaB2cShortcode
+      mpesaB2bShortcode
+      mpesaInitiatorName
       createdAt
       updatedAt
     }
@@ -68,6 +78,9 @@ export const GET_AGENCY = gql`
       description
       mpesaShortcode
       mpesaEnv
+      mpesaB2cShortcode
+      mpesaB2bShortcode
+      mpesaInitiatorName
       createdAt
       updatedAt
     }
@@ -89,6 +102,9 @@ export const CREATE_AGENCY = gql`
       description
       mpesaShortcode
       mpesaEnv
+      mpesaB2cShortcode
+      mpesaB2bShortcode
+      mpesaInitiatorName
       createdAt
       updatedAt
     }
@@ -109,6 +125,9 @@ export const UPDATE_AGENCY = gql`
       description
       mpesaShortcode
       mpesaEnv
+      mpesaB2cShortcode
+      mpesaB2bShortcode
+      mpesaInitiatorName
       createdAt
       updatedAt
     }

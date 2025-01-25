@@ -1,66 +1,49 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
 
-const LoginSuccess = () => {
+export default function LoginSuccessPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { googleLogin } = useAuth();
-  const isProcessing = useRef(false);
 
   useEffect(() => {
-    const handleLoginSuccess = async () => {
-      if (isProcessing.current) return;
-      isProcessing.current = true;
+    const token = searchParams.get("token");
+    
+    if (!token) {
+      toast.error("No authentication token received");
+      router.push("/sign-in");
+      return;
+    }
 
+    const completeAuth = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get("token");
-
-        if (!token) {
-          toast.error("No authentication token received");
-          router.push("/sign-in");
-          return;
-        }
-
         const success = await googleLogin(token);
         if (success) {
-          toast.success("Google login successful");
+          toast.success("Successfully logged in");
           router.push("/main");
         } else {
-          toast.error("Failed to authenticate with Google");
+          toast.error("Failed to complete authentication");
           router.push("/sign-in");
         }
-      } catch (error) {
-        console.error("Login error:", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Login failed. Please try again."
-        );
+      } catch {
+        toast.error("An error occurred during authentication");
         router.push("/sign-in");
-      } finally {
-        isProcessing.current = false;
       }
     };
 
-    handleLoginSuccess();
-  }, [router, googleLogin]);
+    completeAuth();
+  }, [router, searchParams, googleLogin]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Loader2Icon size={48} className="animate-spin text-fuchsia-600 mb-4" />
-      <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-        Logging in...
-      </h2>
-      <p className="text-gray-600 dark:text-gray-400">
-        Please wait while we complete your login...
-      </p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold mb-4">Completing login...</h1>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+      </div>
     </div>
   );
-};
-
-export default LoginSuccess;
+}

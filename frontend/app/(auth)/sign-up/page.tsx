@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Chrome } from "lucide-react";
 import { LockIcon } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const SignUp = () => {
   const handleGoogleSignUp = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google/login`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) {
+      toast.error("Base API URL not configured");
+      return;
+    }
+    window.location.href = `${baseUrl}/auth/google/login`;
   };
 
   return (
@@ -49,7 +55,7 @@ const SignUp = () => {
                 onClick={handleGoogleSignUp}
               >
                 <Chrome className="h-5 w-5" />
-                <span className="font-semibold">Google</span>
+                <span className="font-semibold">Sign up with Google</span>
               </Button>
             </div>
           </div>

@@ -30,10 +30,6 @@ class Agency:
     mpesa_b2c_shortcode: Optional[str] = None
     mpesa_b2b_shortcode: Optional[str] = None
     mpesa_initiator_name: Optional[str] = None
-    mpesa_transaction_types: Optional[List[str]] = None
-    mpesa_callback_url: Optional[str] = None
-    mpesa_timeout_url: Optional[str] = None
-    mpesa_result_url: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     # Sensitive fields excluded from type
@@ -53,15 +49,11 @@ class AgencyInput:
     mpesa_consumer_secret: Optional[str] = None
     mpesa_shortcode: Optional[str] = None
     mpesa_passkey: Optional[str] = None
-    mpesa_env: Optional[str] = None
+    mpesa_env: Optional[str] = MpesaEnvironment.SANDBOX.value
     mpesa_b2c_shortcode: Optional[str] = None
     mpesa_b2b_shortcode: Optional[str] = None
     mpesa_initiator_name: Optional[str] = None
     mpesa_initiator_password: Optional[str] = None
-    mpesa_transaction_types: Optional[List[str]] = None
-    mpesa_callback_url: Optional[str] = None
-    mpesa_timeout_url: Optional[str] = None
-    mpesa_result_url: Optional[str] = None
 
 @strawberry.input
 class AgencyUpdateInput:
@@ -82,7 +74,3 @@ class AgencyUpdateInput:
     mpesa_b2b_shortcode: Optional[str] = None
     mpesa_initiator_name: Optional[str] = None
     mpesa_initiator_password: Optional[str] = None
-    mpesa_transaction_types: Optional[List[str]] = None
-    mpesa_callback_url: Optional[str] = None
-    mpesa_timeout_url: Optional[str] = None
-    mpesa_result_url: Optional[str] = None

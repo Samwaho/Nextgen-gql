@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 from ..config.mpesa import get_mpesa_settings
 from .encryption import decrypt_mpesa_credentials
+from ..schemas.mpesa_schemas import CommandID
 
 class MpesaIntegration:
     def __init__(self, agency_data: Dict[str, Any]):
@@ -22,6 +23,17 @@ class MpesaIntegration:
         self.base_url = "https://sandbox.safaricom.co.ke" if self.env == "sandbox" else "https://api.safaricom.co.ke"
         self.settings = get_mpesa_settings()
         
+        # Validate required fields
+        if not all([
+            self.consumer_key,
+            self.consumer_secret,
+            self.shortcode,
+            self.passkey,
+            self.initiator_name,
+            self.initiator_password
+        ]):
+            raise ValueError("Missing required M-Pesa credentials")
+
     async def get_access_token(self) -> Optional[str]:
         """Get M-Pesa API access token."""
         try:
@@ -29,10 +41,12 @@ class MpesaIntegration:
             headers = {"Authorization": f"Basic {auth}"}
             response = requests.get(
                 f"{self.base_url}/oauth/v1/generate?grant_type=client_credentials",
-                headers=headers
+                headers=headers,
+                timeout=30  # Add timeout
             )
+            response.raise_for_status()  # Raise exception for non-200 status codes
             return response.json().get("access_token")
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"Error getting access token: {str(e)}")
             return None
 
@@ -52,10 +66,12 @@ class MpesaIntegration:
             response = requests.post(
                 f"{self.base_url}/mpesa/c2b/v1/registerurl",
                 headers=headers,
-                json=data
+                json=data,
+                timeout=30
             )
+            response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"Error registering URLs: {str(e)}")
             return {"error": str(e)}
 
@@ -70,7 +86,7 @@ class MpesaIntegration:
             }
             data = {
                 "ShortCode": self.shortcode,
-                "CommandID": "CustomerPayBillOnline",
+                "CommandID": CommandID.CUSTOMER_PAYBILL_ONLINE.value,
                 "Amount": str(amount),
                 "Msisdn": phone,
                 "BillRefNumber": reference
@@ -78,10 +94,12 @@ class MpesaIntegration:
             response = requests.post(
                 f"{self.base_url}/mpesa/c2b/v1/simulate",
                 headers=headers,
-                json=data
+                json=data,
+                timeout=30
             )
+            response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"Error initiating C2B transaction: {str(e)}")
             return {"error": str(e)}
 
@@ -90,14 +108,17 @@ class MpesaIntegration:
     ) -> Dict[str, Any]:
         """Initiate a Business to Customer (B2C) transaction."""
         try:
+            if not self.b2c_shortcode:
+                raise ValueError("B2C shortcode not configured")
+                
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
             data = {
                 "InitiatorName": self.initiator_name,
-                "SecurityCredential": self.initiator_password,  # Should be encrypted
-                "CommandID": "BusinessPayment",
+                "SecurityCredential": self.initiator_password,
+                "CommandID": CommandID.BUSINESS_PAYMENT.value,
                 "Amount": str(amount),
                 "PartyA": self.b2c_shortcode,
                 "PartyB": phone,
@@ -109,10 +130,12 @@ class MpesaIntegration:
             response = requests.post(
                 f"{self.base_url}/mpesa/b2c/v1/paymentrequest",
                 headers=headers,
-                json=data
+                json=data,
+                timeout=30
             )
+            response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"Error initiating B2C transaction: {str(e)}")
             return {"error": str(e)}
 
@@ -122,14 +145,17 @@ class MpesaIntegration:
     ) -> Dict[str, Any]:
         """Initiate a Business to Business (B2B) transaction."""
         try:
+            if not self.b2b_shortcode:
+                raise ValueError("B2B shortcode not configured")
+                
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
             data = {
                 "Initiator": self.initiator_name,
-                "SecurityCredential": self.initiator_password,  # Should be encrypted
-                "CommandID": "BusinessToBusinessPayment",
+                "SecurityCredential": self.initiator_password,
+                "CommandID": CommandID.BUSINESS_TO_BUSINESS.value,
                 "SenderIdentifierType": "4",  # Shortcode
                 "RecieverIdentifierType": "4",  # Shortcode
                 "Amount": str(amount),
@@ -143,10 +169,12 @@ class MpesaIntegration:
             response = requests.post(
                 f"{self.base_url}/mpesa/b2b/v1/paymentrequest",
                 headers=headers,
-                json=data
+                json=data,
+                timeout=30
             )
+            response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"Error initiating B2B transaction: {str(e)}")
             return {"error": str(e)}
 
@@ -159,8 +187,8 @@ class MpesaIntegration:
             }
             data = {
                 "Initiator": self.initiator_name,
-                "SecurityCredential": self.initiator_password,  # Should be encrypted
-                "CommandID": "AccountBalance",
+                "SecurityCredential": self.initiator_password,
+                "CommandID": CommandID.ACCOUNT_BALANCE.value,
                 "PartyA": self.shortcode,
                 "IdentifierType": "4",  # Shortcode
                 "Remarks": "Account balance query",
@@ -170,9 +198,11 @@ class MpesaIntegration:
             response = requests.post(
                 f"{self.base_url}/mpesa/accountbalance/v1/query",
                 headers=headers,
-                json=data
+                json=data,
+                timeout=30
             )
+            response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             print(f"Error checking balance: {str(e)}")
             return {"error": str(e)} 

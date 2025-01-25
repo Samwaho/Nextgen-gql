@@ -19,7 +19,6 @@ import {
   type AuthResponse,
   setAuthToken,
 } from "@/graphql/auth";
-import { Chrome } from "lucide-react";
 
 type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 
@@ -65,15 +64,6 @@ const SignUpForm = () => {
     } catch {
       // Error is handled by onError callback
     }
-  };
-
-  const handleGoogleSignup = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!baseUrl) {
-      toast.error("Base API URL not configured");
-      return;
-    }
-    window.location.href = `${baseUrl}/auth/google/login`;
   };
 
   return (
@@ -155,26 +145,6 @@ const SignUpForm = () => {
             )}
           </Button>
         </div>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              Or sign up with
-            </span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full flex items-center justify-center gap-2"
-          onClick={handleGoogleSignup}
-        >
-          <Chrome className="h-5 w-5" />
-          Sign up with Google
-        </Button>
       </form>
     </Form>
   );

@@ -94,19 +94,23 @@ export const routerSchema = z.object({
 });
 
 export const agencySchema = z.object({
-  name: z.string().min(1, "Agency name is required"),
-  address: z.string().min(1, "Address is required"),
-  phone: z.string().min(1, "Phone number is required"),
+  name: z.string().min(1, "Name is required"),
+  address: z.string(),
+  phone: z.string(),
   email: z.string().email("Invalid email address"),
-  website: z.string().min(1, "Website is required"),
-  logo: z.string().min(1, "Logo URL is required"),
-  banner: z.string().min(1, "Banner URL is required"),
-  description: z.string().min(1, "Description is required"),
-  mpesaConsumerKey: z.string().min(1, "M-Pesa Consumer Key is required"),
-  mpesaConsumerSecret: z.string().min(1, "M-Pesa Consumer Secret is required"),
-  mpesaShortcode: z.string().min(1, "M-Pesa Shortcode is required"),
-  mpesaPasskey: z.string().min(1, "M-Pesa Passkey is required"),
-  mpesaEnv: z.string().min(1, "M-Pesa Environment is required"),
+  website: z.string(),
+  logo: z.string(),
+  banner: z.string(),
+  description: z.string(),
+  mpesaConsumerKey: z.string(),
+  mpesaConsumerSecret: z.string(),
+  mpesaShortcode: z.string(),
+  mpesaPasskey: z.string(),
+  mpesaEnv: z.string(),
+  mpesaB2cShortcode: z.string(),
+  mpesaB2bShortcode: z.string(),
+  mpesaInitiatorName: z.string(),
+  mpesaInitiatorPassword: z.string(),
 });
 
 // Extended schemas with additional properties

@@ -39,6 +39,10 @@ const OnboardingForm = () => {
       mpesaShortcode: "",
       mpesaPasskey: "",
       mpesaEnv: "sandbox",
+      mpesaB2cShortcode: "",
+      mpesaB2bShortcode: "",
+      mpesaInitiatorName: "",
+      mpesaInitiatorPassword: "",
     },
   });
 
@@ -53,6 +57,10 @@ const OnboardingForm = () => {
           mpesaShortcode: values.mpesaShortcode,
           mpesaPasskey: values.mpesaPasskey,
           mpesaEnv: values.mpesaEnv,
+          mpesaB2cShortcode: values.mpesaB2cShortcode,
+          mpesaB2bShortcode: values.mpesaB2bShortcode,
+          mpesaInitiatorName: values.mpesaInitiatorName,
+          mpesaInitiatorPassword: values.mpesaInitiatorPassword,
         } as AgencyInput);
         toast.success("Agency created successfully");
         router.refresh();
@@ -176,11 +184,40 @@ const OnboardingForm = () => {
                   placeholder="Enter M-Pesa Passkey"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <CustomInput
+                  control={form.control}
+                  name="mpesaB2cShortcode"
+                  label="M-Pesa B2C Shortcode"
+                  placeholder="Enter M-Pesa B2C Shortcode"
+                />
+                <CustomInput
+                  control={form.control}
+                  name="mpesaB2bShortcode"
+                  label="M-Pesa B2B Shortcode"
+                  placeholder="Enter M-Pesa B2B Shortcode"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <CustomInput
+                  control={form.control}
+                  name="mpesaInitiatorName"
+                  label="M-Pesa Initiator Name"
+                  placeholder="Enter M-Pesa Initiator Name"
+                />
+                <CustomInput
+                  control={form.control}
+                  name="mpesaInitiatorPassword"
+                  label="M-Pesa Initiator Password"
+                  placeholder="Enter M-Pesa Initiator Password"
+                  type="password"
+                />
+              </div>
               <CustomInput
                 control={form.control}
                 name="mpesaEnv"
                 label="M-Pesa Environment"
-                placeholder="Enter M-Pesa Environment"
+                placeholder="sandbox or production"
               />
             </div>
           </TabsContent>

@@ -182,6 +182,15 @@ async def update_agency(id: str, agency_input: AgencyUpdateInput) -> Optional[Ag
                 return_document=True
             )
             if result:
+                # Re-register M-Pesa URLs if M-Pesa credentials were updated
+                mpesa_fields = ["mpesa_consumer_key", "mpesa_consumer_secret", "mpesa_shortcode"]
+                if any(field in update_data for field in mpesa_fields):
+                    decrypted_data = decrypt_mpesa_credentials(result)
+                    mpesa = MpesaIntegration(decrypted_data)
+                    access_token = await mpesa.get_access_token()
+                    if access_token:
+                        await mpesa.register_urls(access_token)
+                
                 return Agency(
                     id=str(result["_id"]),
                     name=result["name"],

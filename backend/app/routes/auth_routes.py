@@ -130,8 +130,6 @@ class AuthMutation:
     @strawberry.mutation
     async def google_auth(self, input: GoogleAuthInput) -> AuthResponse:
         try:
-            print(f"Attempting to verify Google token: {input.token[:20]}...")  # Log first 20 chars of token
-            
             # Create a proper request object
             request = GoogleRequest()
             
@@ -139,14 +137,19 @@ class AuthMutation:
             idinfo = id_token.verify_oauth2_token(
                 input.token, 
                 request,
-                settings.GOOGLE_CLIENT_ID
+                settings.GOOGLE_CLIENT_ID,
+                clock_skew_in_seconds=60  # Allow for some clock skew
             )
             
-            print(f"Token verified successfully. Email: {idinfo.get('email')}")
+            # Check if token is expired
+            if datetime.fromtimestamp(idinfo["exp"]) < datetime.utcnow():
+                return AuthResponse(
+                    success=False,
+                    message="Token has expired"
+                )
 
             # Verify email is verified by Google
-            if not idinfo.get('email_verified'):
-                print(f"Email not verified by Google: {idinfo.get('email')}")
+            if not idinfo.get("email_verified"):
                 return AuthResponse(
                     success=False,
                     message="Email not verified by Google"
@@ -160,10 +163,8 @@ class AuthMutation:
                 "given_name": idinfo.get("given_name"),
                 "family_name": idinfo.get("family_name")
             })
-            
-            print(f"User created/retrieved successfully: {user['email']}")
 
-            # Generate token
+            # Generate token with appropriate expiry
             access_token = create_access_token(
                 data={
                     "sub": str(user["_id"]),
@@ -180,20 +181,26 @@ class AuthMutation:
             )
 
         except ValueError as e:
-            print(f"Google token verification error: {str(e)}")
-            print(f"Token received: {input.token[:20]}...")  # Log first 20 chars of token
-            print(f"Client ID being used: {settings.GOOGLE_CLIENT_ID}")
+            error_msg = str(e)
+            if "Token expired" in error_msg:
+                return AuthResponse(
+                    success=False,
+                    message="Authentication token has expired. Please try logging in again."
+                )
+            elif "Invalid token" in error_msg:
+                return AuthResponse(
+                    success=False,
+                    message="Invalid authentication token. Please try logging in again."
+                )
             return AuthResponse(
                 success=False,
-                message=str(e) or "Invalid Google token"
+                message="Failed to verify Google token. Please try again."
             )
         except Exception as e:
             print(f"Unexpected error during Google authentication: {str(e)}")
-            print(f"Error type: {type(e)}")
-            print(f"Token received: {input.token[:20]}...")  # Log first 20 chars of token
             return AuthResponse(
                 success=False,
-                message="An unexpected error occurred during authentication"
+                message="An unexpected error occurred. Please try again later."
             )
 
     @strawberry.mutation
@@ -241,29 +248,35 @@ async def google_callback(request: Request):
     try:
         flow.redirect_uri = f"{settings.API_URL}/auth/google/callback"
         code = request.query_params.get("code")
+        
         if not code:
             return RedirectResponse(
-                f"{settings.FRONTEND_URL}/sign-in?error=no_code",
-                status_code=307  # Use 307 for temporary redirect
+                f"{settings.FRONTEND_URL}/sign-in?error=missing_auth_code",
+                status_code=307
             )
             
         try:
             flow.fetch_token(code=code)
         except Exception as e:
-            print(f"Token fetch error: {str(e)}")
             return RedirectResponse(
-                f"{settings.FRONTEND_URL}/sign-in?error=token_fetch_failed",
+                f"{settings.FRONTEND_URL}/sign-in?error=invalid_auth_code",
                 status_code=307
             )
 
         credentials = flow.credentials
-        if not credentials or not credentials.id_token:
+        if not credentials:
             return RedirectResponse(
-                f"{settings.FRONTEND_URL}/sign-in?error=no_credentials",
+                f"{settings.FRONTEND_URL}/sign-in?error=missing_credentials",
+                status_code=307
+            )
+            
+        if not credentials.id_token:
+            return RedirectResponse(
+                f"{settings.FRONTEND_URL}/sign-in?error=missing_id_token",
                 status_code=307
             )
 
-        # Get user info from Google
+        # Get user info from Google to verify token is valid
         user_info_response = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             headers={"Authorization": f"Bearer {credentials.token}"}
@@ -271,7 +284,7 @@ async def google_callback(request: Request):
         
         if not user_info_response.ok:
             return RedirectResponse(
-                f"{settings.FRONTEND_URL}/sign-in?error=user_info_failed",
+                f"{settings.FRONTEND_URL}/sign-in?error=invalid_token",
                 status_code=307
             )
 
@@ -282,8 +295,12 @@ async def google_callback(request: Request):
         )
         
     except Exception as e:
-        print(f"Google callback error: {str(e)}")
+        error_type = "server_error"
+        if "access_denied" in str(e).lower():
+            error_type = "access_denied"
+        elif "invalid_request" in str(e).lower():
+            error_type = "invalid_request"
         return RedirectResponse(
-            f"{settings.FRONTEND_URL}/sign-in?error=google_auth_failed",
+            f"{settings.FRONTEND_URL}/sign-in?error={error_type}",
             status_code=307
         )

@@ -100,11 +100,16 @@ async def radius_authorize(
         })
     
     # Check if customer's package has expired
-    if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
-        logger.warning(f"Customer {username} package expired. Expiry: {customer.get('expiry')}")
-        return format_radius_response({
-            "Reply-Message": "Access time expired"
-        })
+    if customer.get("expiry"):
+        expiry_date = customer["expiry"]
+        if isinstance(expiry_date, str):
+            expiry_date = datetime.fromisoformat(expiry_date.replace('Z', '+00:00'))
+        current_time = get_current_time()
+        if current_time > expiry_date:
+            logger.warning(f"Customer {username} package expired. Expiry: {expiry_date}, Current: {current_time}")
+            return format_radius_response({
+                "Reply-Message": "Access time expired"
+            })
 
     # Build response according to FreeRADIUS REST module specs
     reply = {
@@ -118,12 +123,12 @@ async def radius_authorize(
             # Convert package to RadiusProfile
             profile = RadiusProfile(
                 name=package.get("name", "default"),
-                download_speed=package["download_speed"],
-                upload_speed=package["upload_speed"],
-                burst_download=package.get("burst_download"),
-                burst_upload=package.get("burst_upload"),
-                threshold_download=package.get("threshold_download"),
-                threshold_upload=package.get("threshold_upload"),
+                download_speed=int(package["download_speed"] * 1024),  # Convert Mbps to kbps
+                upload_speed=int(package["upload_speed"] * 1024),      # Convert Mbps to kbps
+                burst_download=int(package.get("burst_download", 0) * 1024) if package.get("burst_download") else None,
+                burst_upload=int(package.get("burst_upload", 0) * 1024) if package.get("burst_upload") else None,
+                threshold_download=int(package.get("threshold_download", 0) * 1024) if package.get("threshold_download") else None,
+                threshold_upload=int(package.get("threshold_upload", 0) * 1024) if package.get("threshold_upload") else None,
                 burst_time=package.get("burst_time"),
                 service_type=package.get("service_type"),
                 address_pool=package.get("address_pool"),
@@ -133,12 +138,24 @@ async def radius_authorize(
                 vlan_id=package.get("vlan_id")
             )
             
+            def format_speed(speed_kbps):
+                """Format speed with appropriate k/M suffix"""
+                if speed_kbps >= 1024:
+                    return f"{speed_kbps // 1024}M"
+                return f"{speed_kbps}k"
+            
             # Add profile attributes
             reply.update({
                 "WISPr-Bandwidth-Max-Down": profile.download_speed,
                 "WISPr-Bandwidth-Max-Up": profile.upload_speed,
-                # Add MikroTik specific rate limit
-                "Mikrotik-Rate-Limit": f"{profile.upload_speed}k/{profile.download_speed}k"
+                # Add MikroTik specific rate limit - format: upload/download burst-upload/burst-download burst-threshold-upload/burst-threshold-download burst-time/burst-time priority
+                "Mikrotik-Rate-Limit": (
+                    f"{format_speed(profile.upload_speed)}/{format_speed(profile.download_speed)} "
+                    f"{format_speed(profile.burst_upload or profile.upload_speed)}/{format_speed(profile.burst_download or profile.download_speed)} "
+                    f"{format_speed(profile.threshold_upload or profile.upload_speed)}/{format_speed(profile.threshold_download or profile.download_speed)} "
+                    f"{profile.burst_time or '0'}/{profile.burst_time or '0'} "
+                    f"{profile.priority or '8'}"
+                )
             })
             
             # Add additional profile attributes
@@ -209,11 +226,16 @@ async def radius_authenticate(
         })
     
     # Check if customer's package has expired
-    if customer.get("expiry") and datetime.utcnow() > customer["expiry"]:
-        logger.warning(f"Customer {username} package expired. Expiry: {customer.get('expiry')}")
-        return format_radius_response({
-            "Reply-Message": "Access time expired"
-        })
+    if customer.get("expiry"):
+        expiry_date = customer["expiry"]
+        if isinstance(expiry_date, str):
+            expiry_date = datetime.fromisoformat(expiry_date.replace('Z', '+00:00'))
+        current_time = get_current_time()
+        if current_time > expiry_date:
+            logger.warning(f"Customer {username} package expired. Expiry: {expiry_date}, Current: {current_time}")
+            return format_radius_response({
+                "Reply-Message": "Access time expired"
+            })
     
     logger.info(f"Authentication successful for {username}")
     return Response(status_code=204)
@@ -404,39 +426,11 @@ async def radius_post_auth(
             body = dict(form)
             logger.info(f"Received post-auth form data: {json.dumps(body, default=str)}")
         
-        # Get required fields with fallbacks for both formats
-        username = body.get("username", body.get("User-Name"))
-        if not username:
-            logger.error("Missing username in post-auth request")
-            return Response(status_code=400)
-            
-        # Get customer details
-        customer = await db.get_collection("customers").find_one({
-            "username": username
-        })
+        # Just log the data without saving
+        username = body.get("username", body.get("User-Name", "unknown"))
+        logger.info(f"Post-auth request for user: {username}")
         
-        # Structure post-auth data
-        post_auth_data = {
-            "username": username,
-            "called_station_id": body.get("Called-Station-Id", body.get("called_station_id", "")),
-            "calling_station_id": body.get("Calling-Station-Id", body.get("calling_station_id", "")),
-            "packet_type": body.get("Packet-Type", body.get("packet_type", "")),
-            "reply_message": body.get("Reply-Message", body.get("reply_message", "")),
-            "timestamp": datetime.utcnow(),
-            "raw_data": body,
-            "agency": customer["agency"] if customer else None,
-            "status": "success" if customer else "failed"
-        }
-        
-        # Store post-auth data
-        try:
-            result = await db.get_collection("post_auth").insert_one(post_auth_data)
-            logger.info(f"Stored post-auth record {result.inserted_id} for {username}")
-            return Response(status_code=204)
-            
-        except Exception as e:
-            logger.error(f"Failed to store post-auth data: {str(e)}")
-            return Response(status_code=500)
+        return Response(status_code=204)
             
     except Exception as e:
         logger.error(f"Error processing post-auth request: {str(e)}")

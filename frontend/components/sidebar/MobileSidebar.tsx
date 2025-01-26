@@ -78,7 +78,7 @@ const MobileSidebar: React.FC<Props> = ({ loggedInUser }) => {
                       >
                         <i
                           className={`p-1 rounded-md shadow-md text-white transition-all duration-300 ${
-                            pathname === item.path
+                            pathname.startsWith(item.path)
                               ? "bg-gradient-custom scale-110"
                               : "bg-gradient-custom2 hover:scale-105"
                           }`}
@@ -87,7 +87,7 @@ const MobileSidebar: React.FC<Props> = ({ loggedInUser }) => {
                         </i>
                         <p
                           className={`text-md font-medium ${
-                            pathname === item.path
+                            pathname.startsWith(item.path)
                               ? "text-purple-600 dark:text-purple-400"
                               : ""
                           }`}

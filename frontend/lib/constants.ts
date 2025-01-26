@@ -28,7 +28,7 @@ interface SidebarItem {
 export const sidebarData: SidebarItem[] = [
   {
     title: "Dashboard",
-    path: "/main/dashboard",
+    path: "/main",
     icon: LayoutDashboard,
   },
   {

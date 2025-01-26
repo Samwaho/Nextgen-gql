@@ -9,6 +9,8 @@ from ..schemas.mpesa_schemas import (
     MpesaTransaction, TransactionFilter, TransactionStatus, 
     TransactionType, CustomerPaymentInput, CommandID, MpesaResponse, B2CPaymentInput, B2BPaymentInput
 )
+from ..schemas.notification_schemas import NotificationInput
+from ..routes.notification_routes import create_notification
 from strawberry.types import Info
 
 @strawberry.input
@@ -109,7 +111,8 @@ async def update_customer_subscription(
 # Callback Handlers
 async def process_mpesa_callback(
     data: Dict[str, Any],
-    status: TransactionStatus
+    status: TransactionStatus,
+    user_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """Generic handler for M-Pesa callbacks."""
     try:
@@ -136,6 +139,32 @@ async def process_mpesa_callback(
             str(transaction["_id"]),
             status,
             data
+        )
+        
+        # Create notification for transaction status change
+        amount = data.get("TransAmount", transaction.get("amount", 0))
+        receipt = data.get("TransID", "N/A")
+        
+        notification_message = ""
+        if status == TransactionStatus.COMPLETED:
+            notification_message = f"Payment of KES {amount} completed successfully. M-Pesa receipt: {receipt}"
+        elif status == TransactionStatus.VALIDATED:
+            notification_message = f"Payment of KES {amount} validated"
+        elif status == TransactionStatus.TIMEOUT:
+            notification_message = f"Payment of KES {amount} timed out"
+            
+        await create_notification(
+            NotificationInput(
+                type=f"mpesa_{status.value.lower()}",
+                title=f"M-Pesa Payment {status.value.title()}",
+                message=notification_message,
+                entity_id=str(transaction["_id"]),
+                entity_type="mpesa_transaction",
+                user_id=user_id or transaction.get("user_id"),
+                is_read=False
+            ),
+            transaction["agency_id"],
+            user_id or transaction.get("user_id")
         )
         
         # For completed transactions, update customer subscription if applicable
@@ -260,6 +289,7 @@ class Mutation:
     ) -> MpesaResponse:
         """Initiate M-Pesa payment for a customer subscription."""
         agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
         if not agency_id:
             return MpesaResponse(
                 success=False,
@@ -282,6 +312,7 @@ class Mutation:
             transactions = db.get_collection("mpesa_transactions")
             transaction = {
                 "agency_id": agency_id,
+                "user_id": user_id,
                 "customer_id": input.customer_id,
                 "type": TransactionType.C2B.value,
                 "amount": input.amount,
@@ -296,6 +327,21 @@ class Mutation:
             }
             
             result = await transactions.insert_one(transaction)
+            
+            # Create notification for payment initiation
+            await create_notification(
+                NotificationInput(
+                    type="mpesa_initiated",
+                    title="M-Pesa Payment Initiated",
+                    message=f"Payment of KES {input.amount} initiated for customer subscription. Reference: {reference}",
+                    entity_id=str(result.inserted_id),
+                    entity_type="mpesa_transaction",
+                    user_id=user_id,
+                    is_read=False
+                ),
+                agency_id,
+                user_id
+            )
             
             # Initiate M-Pesa payment
             access_token = await mpesa.get_access_token()
@@ -320,6 +366,20 @@ class Mutation:
                     reference=reference
                 )
             else:
+                # Create notification for failed initiation
+                await create_notification(
+                    NotificationInput(
+                        type="mpesa_failed",
+                        title="M-Pesa Payment Failed",
+                        message=f"Payment initiation failed: {response.get('ResponseDescription', 'Unknown error')}",
+                        entity_id=str(result.inserted_id),
+                        entity_type="mpesa_transaction",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    agency_id,
+                    user_id
+                )
                 return MpesaResponse(
                     success=False,
                     message=response.get("ResponseDescription", "Payment initiation failed")
@@ -338,6 +398,7 @@ class Mutation:
     ) -> MpesaResponse:
         """Initiate Business to Customer (B2C) M-Pesa payment."""
         agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
         if not agency_id:
             return MpesaResponse(
                 success=False,
@@ -357,6 +418,7 @@ class Mutation:
             transactions = db.get_collection("mpesa_transactions")
             transaction = {
                 "agency_id": agency_id,
+                "user_id": user_id,
                 "type": TransactionType.B2C.value,
                 "amount": input.amount,
                 "phone": input.phone,
@@ -368,6 +430,21 @@ class Mutation:
             }
             
             result = await transactions.insert_one(transaction)
+            
+            # Create notification for B2C payment initiation
+            await create_notification(
+                NotificationInput(
+                    type="mpesa_b2c_initiated",
+                    title="M-Pesa B2C Payment Initiated",
+                    message=f"B2C Payment of KES {input.amount} initiated. Reference: {input.reference}",
+                    entity_id=str(result.inserted_id),
+                    entity_type="mpesa_transaction",
+                    user_id=user_id,
+                    is_read=False
+                ),
+                agency_id,
+                user_id
+            )
             
             # Initiate M-Pesa payment
             access_token = await mpesa.get_access_token()
@@ -393,6 +470,20 @@ class Mutation:
                     reference=input.reference
                 )
             else:
+                # Create notification for failed B2C initiation
+                await create_notification(
+                    NotificationInput(
+                        type="mpesa_b2c_failed",
+                        title="M-Pesa B2C Payment Failed",
+                        message=f"B2C Payment initiation failed: {response.get('ResponseDescription', 'Unknown error')}",
+                        entity_id=str(result.inserted_id),
+                        entity_type="mpesa_transaction",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    agency_id,
+                    user_id
+                )
                 return MpesaResponse(
                     success=False,
                     message=response.get("ResponseDescription", "B2C Payment initiation failed")
@@ -411,6 +502,7 @@ class Mutation:
     ) -> MpesaResponse:
         """Initiate Business to Business (B2B) M-Pesa payment."""
         agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
         if not agency_id:
             return MpesaResponse(
                 success=False,
@@ -430,6 +522,7 @@ class Mutation:
             transactions = db.get_collection("mpesa_transactions")
             transaction = {
                 "agency_id": agency_id,
+                "user_id": user_id,
                 "type": TransactionType.B2B.value,
                 "amount": input.amount,
                 "receiver_shortcode": input.receiver_shortcode,
@@ -441,6 +534,21 @@ class Mutation:
             }
             
             result = await transactions.insert_one(transaction)
+            
+            # Create notification for B2B payment initiation
+            await create_notification(
+                NotificationInput(
+                    type="mpesa_b2b_initiated",
+                    title="M-Pesa B2B Payment Initiated",
+                    message=f"B2B Payment of KES {input.amount} initiated to {input.receiver_shortcode}. Reference: {input.reference}",
+                    entity_id=str(result.inserted_id),
+                    entity_type="mpesa_transaction",
+                    user_id=user_id,
+                    is_read=False
+                ),
+                agency_id,
+                user_id
+            )
             
             # Initiate M-Pesa payment
             access_token = await mpesa.get_access_token()
@@ -466,6 +574,20 @@ class Mutation:
                     reference=input.reference
                 )
             else:
+                # Create notification for failed B2B initiation
+                await create_notification(
+                    NotificationInput(
+                        type="mpesa_b2b_failed",
+                        title="M-Pesa B2B Payment Failed",
+                        message=f"B2B Payment initiation failed: {response.get('ResponseDescription', 'Unknown error')}",
+                        entity_id=str(result.inserted_id),
+                        entity_type="mpesa_transaction",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    agency_id,
+                    user_id
+                )
                 return MpesaResponse(
                     success=False,
                     message=response.get("ResponseDescription", "B2B Payment initiation failed")

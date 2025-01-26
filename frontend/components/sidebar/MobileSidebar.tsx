@@ -111,11 +111,11 @@ const MobileSidebar: React.FC<Props> = ({ loggedInUser }) => {
                     <div className="flex items-center gap-3 group">
                       <div className="flex size-8 items-center justify-center rounded-full bg-gradient-custom shadow-md group-hover:scale-105 transition-transform">
                         <p className="text-white uppercase font-medium">
-                          {loggedInUser.name[0]}
+                          {loggedInUser?.name?.[0] || "U"}
                         </p>
                       </div>
                       <p className="text-md capitalize font-medium group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                        {loggedInUser.name}
+                        {loggedInUser?.name || "User"}
                       </p>
                     </div>
                   </div>

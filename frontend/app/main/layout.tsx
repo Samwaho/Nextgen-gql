@@ -1,4 +1,4 @@
-import Header from "@/components/header/page";
+
 import Sidebar from "@/components/sidebar/Sidebar";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -6,13 +6,14 @@ import OnboardingPage from "@/components/onboarding/page";
 import { GET_CURRENT_USER } from "@/graphql/auth";
 import { getClient } from "@/lib/apollo-client";
 import { cookies } from "next/headers";
+import Header from "@/components/header/Header";
 
 interface AuthUser {
   id: string;
   name: string;
   email: string;
   agency?: {
-    id: string;
+    id: string; 
     name: string;
   };
 }

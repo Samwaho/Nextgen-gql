@@ -9,7 +9,8 @@ import {
 
 export interface Props {
   loggedInUser?: {
-    name: string;
+    id?: string;
+    name?: string;
     email?: string;
   };
 }

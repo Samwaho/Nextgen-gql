@@ -4,6 +4,8 @@ from datetime import datetime
 from bson import ObjectId
 from ..config.database import db
 from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput, CustomerPackage, CustomerStation, AccountingData
+from ..schemas.notification_schemas import NotificationInput
+from ..routes.notification_routes import create_notification
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -104,7 +106,7 @@ async def get_customer(id: str) -> Optional[Customer]:
         return None
     return None
 
-async def create_customer(customer_input: CustomerInput, agency_id: str) -> Customer:
+async def create_customer(customer_input: CustomerInput, agency_id: str, user_id: str) -> Customer:
     collection = db.get_collection("customers")
     now = datetime.utcnow()
     
@@ -160,6 +162,21 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
             address=station_data["address"]
         )
     
+    # Create notification for new customer
+    await create_notification(
+        NotificationInput(
+            type="customer_created",
+            title="New Customer Created",
+            message=f"Customer with username '{customer_input.username}' has been created",
+            entity_id=str(result.inserted_id),
+            entity_type="customer",
+            user_id=user_id,
+            is_read=False
+        ),
+        agency_id,
+        user_id
+    )
+    
     return Customer(
         id=str(customer_data["_id"]),
         name=customer_data["name"],
@@ -177,7 +194,7 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         updatedAt=customer_data["updated_at"]
     )
 
-async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optional[Customer]:
+async def update_customer(id: str, customer_input: CustomerUpdateInput, agency_id: str, user_id: str) -> Optional[Customer]:
     collection = db.get_collection("customers")
     update_data = {
         "updated_at": datetime.utcnow()
@@ -212,6 +229,23 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
             return_document=True
         )
         if result:
+            # Create notification for customer update
+            changes = [field for field in update_data.keys() if field != "updated_at"]
+            if changes:
+                await create_notification(
+                    NotificationInput(
+                        type="customer_updated",
+                        title="Customer Updated",
+                        message=f"Customer with username '{result['username']}' has been updated. Changed fields: {', '.join(changes)}",
+                        entity_id=str(result["_id"]),
+                        entity_type="customer",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    result["agency"],
+                    user_id
+                )
+            
             # Create package object if exists
             package = None
             if result.get("package"):
@@ -255,11 +289,30 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
         return None
     return None
 
-async def delete_customer(id: str) -> bool:
+async def delete_customer(id: str, agency_id: str, user_id: str) -> bool:
     collection = db.get_collection("customers")
     try:
-        result = await collection.delete_one({"_id": ObjectId(id)})
-        return result.deleted_count > 0
+        # Get customer details before deletion for notification
+        customer = await collection.find_one({"_id": ObjectId(id)})
+        if customer:
+            result = await collection.delete_one({"_id": ObjectId(id)})
+            if result.deleted_count > 0:
+                # Create notification for customer deletion
+                await create_notification(
+                    NotificationInput(
+                        type="customer_deleted",
+                        title="Customer Deleted",
+                        message=f"Customer with username '{customer['username']}' has been deleted",
+                        entity_id=str(customer["_id"]),
+                        entity_type="customer",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    customer["agency"],
+                    user_id
+                )
+                return True
+        return False
     except:
         return False
 
@@ -381,16 +434,21 @@ class Mutation:
     @login_required
     async def create_customer(self, info: Info, customer_input: CustomerInput) -> Customer:
         agency_id = info.context.user.get("agency")
-        return await create_customer(customer_input, agency_id)
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await create_customer(customer_input, agency_id, user_id)
 
     @strawberry.mutation
     @login_required
     async def update_customer(
         self, info: Info, id: str, customer_input: CustomerUpdateInput
     ) -> Optional[Customer]:
-        return await update_customer(id, customer_input)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await update_customer(id, customer_input, agency_id, user_id)
     
     @strawberry.mutation
     @login_required
     async def delete_customer(self, info: Info, id: str) -> bool:
-        return await delete_customer(id)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await delete_customer(id, agency_id, user_id)

@@ -4,6 +4,8 @@ from datetime import datetime
 from bson import ObjectId
 from ..config.database import db
 from ..schemas.station_schemas import Station, StationInput, StationUpdateInput
+from ..schemas.notification_schemas import NotificationInput
+from ..routes.notification_routes import create_notification
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -68,7 +70,7 @@ async def get_station(id: str) -> Optional[Station]:
         return None
     return None
 
-async def create_station(station_input: StationInput, agency_id: str) -> Station:
+async def create_station(station_input: StationInput, agency_id: str, user_id: str) -> Station:
     collection = db.get_collection("stations")
     now = datetime.utcnow()
     
@@ -91,6 +93,22 @@ async def create_station(station_input: StationInput, agency_id: str) -> Station
     station_data["_id"] = result.inserted_id
     station_data["total_customers"] = 0
     
+    # Create notification for new station
+    location_info = f" at {station_input.location}" if station_input.location else ""
+    await create_notification(
+        NotificationInput(
+            type="station_created",
+            title="New Station Created",
+            message=f"Station '{station_input.name}'{location_info} has been created",
+            entity_id=str(result.inserted_id),
+            entity_type="station",
+            user_id=user_id,
+            is_read=False
+        ),
+        agency_id,
+        user_id
+    )
+    
     return Station(
         id=str(station_data["_id"]),
         name=station_data["name"],
@@ -108,24 +126,26 @@ async def create_station(station_input: StationInput, agency_id: str) -> Station
         updatedAt=station_data["updated_at"]
     )
 
-async def update_station(id: str, station_input: StationUpdateInput) -> Optional[Station]:
+async def update_station(id: str, station_input: StationUpdateInput, agency_id: str, user_id: str) -> Optional[Station]:
     collection = db.get_collection("stations")
     customers_collection = db.get_collection("customers")
     update_data = {
         "updated_at": datetime.utcnow()
     }
     
-    for field, db_field in [
-        ("name", "name"),
-        ("location", "location"),
-        ("address", "address"),
-        ("coordinates", "coordinates"),
-        ("buildingType", "building_type"),
-        ("contactPerson", "contact_person"),
-        ("contactPhone", "contact_phone"),
-        ("notes", "notes"),
-        ("status", "status")
-    ]:
+    field_mappings = {
+        "name": "name",
+        "location": "location",
+        "address": "address",
+        "coordinates": "coordinates",
+        "buildingType": "building_type",
+        "contactPerson": "contact_person",
+        "contactPhone": "contact_phone",
+        "notes": "notes",
+        "status": "status"
+    }
+    
+    for field, db_field in field_mappings.items():
         value = getattr(station_input, field)
         if value is not None:
             update_data[db_field] = value
@@ -138,6 +158,34 @@ async def update_station(id: str, station_input: StationUpdateInput) -> Optional
         )
         if result:
             customer_count = await customers_collection.count_documents({"station": str(result["_id"])})
+            
+            # Create notification for station update
+            changes = [field_mappings[field] for field in update_data.keys() if field != "updated_at"]
+            if changes:
+                # Special handling for status changes
+                status_info = ""
+                if "status" in changes:
+                    status_info = f" Station is now {result['status']}."
+                
+                # Special handling for location changes
+                location_info = ""
+                if "location" in changes:
+                    location_info = f" New location: {result['location']}."
+                
+                await create_notification(
+                    NotificationInput(
+                        type="station_updated",
+                        title="Station Updated",
+                        message=f"Station '{result['name']}' has been updated. Changed fields: {', '.join(changes)}.{status_info}{location_info}",
+                        entity_id=str(result["_id"]),
+                        entity_type="station",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    result["agency"],
+                    user_id
+                )
+            
             return Station(
                 id=str(result["_id"]),
                 name=result["name"],
@@ -158,18 +206,41 @@ async def update_station(id: str, station_input: StationUpdateInput) -> Optional
         return None
     return None
 
-async def delete_station(id: str) -> bool:
+async def delete_station(id: str, agency_id: str, user_id: str) -> bool:
     collection = db.get_collection("stations")
     customers_collection = db.get_collection("customers")
     
-    # Check if there are any customers associated with this station
-    customer_count = await customers_collection.count_documents({"station": id})
-    if customer_count > 0:
-        raise ValueError("Cannot delete station with associated customers")
-    
     try:
+        # Get station details before checking customers
+        station = await collection.find_one({"_id": ObjectId(id)})
+        if not station:
+            return False
+            
+        # Check if there are any customers associated with this station
+        customer_count = await customers_collection.count_documents({"station": id})
+        if customer_count > 0:
+            raise ValueError("Cannot delete station with associated customers")
+        
         result = await collection.delete_one({"_id": ObjectId(id)})
-        return result.deleted_count > 0
+        if result.deleted_count > 0:
+            # Create notification for station deletion
+            await create_notification(
+                NotificationInput(
+                    type="station_deleted",
+                    title="Station Deleted",
+                    message=f"Station '{station['name']}' has been deleted",
+                    entity_id=str(station["_id"]),
+                    entity_type="station",
+                    user_id=user_id,
+                    is_read=False
+                ),
+                station["agency"],
+                user_id
+            )
+            return True
+        return False
+    except ValueError as e:
+        raise e
     except:
         return False
 
@@ -192,19 +263,24 @@ class Mutation:
     @login_required
     async def create_station(self, info: Info, station_input: StationInput) -> Station:
         agency_id = info.context.user.get("agency")
-        return await create_station(station_input, agency_id)
+        user_id = str(info.context.user.get("_id"))
+        return await create_station(station_input, agency_id, user_id)
 
     @strawberry.mutation
     @login_required
     async def update_station(
         self, info: Info, id: str, station_input: StationUpdateInput
     ) -> Optional[Station]:
-        return await update_station(id, station_input)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))
+        return await update_station(id, station_input, agency_id, user_id)
     
     @strawberry.mutation
     @login_required
     async def delete_station(self, info: Info, id: str) -> bool:
-        return await delete_station(id)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))
+        return await delete_station(id, agency_id, user_id)
 
 # Create the schema
 schema = strawberry.Schema(query=Query, mutation=Mutation)

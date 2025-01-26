@@ -9,6 +9,7 @@ import {
 import MobileSidebar from "../sidebar/MobileSidebar";
 import { Props } from "@/lib/props";
 import { Settings } from "lucide-react";
+import NotificationsDrawer from "./NotificationsDrawer";
 
 const Header: React.FC<Props> = ({ loggedInUser }) => {
   return (
@@ -17,6 +18,7 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
         <MobileSidebar loggedInUser={loggedInUser} />
       </div>
       <div className="flex gap-2 items-center">
+        <NotificationsDrawer loggedInUser={loggedInUser} />
 
         <TooltipProvider>
           <Tooltip>
@@ -45,4 +47,4 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
   );
 };
 
-export default Header;
+export default Header; 

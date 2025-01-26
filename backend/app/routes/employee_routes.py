@@ -5,6 +5,8 @@ from bson import ObjectId
 
 from ..config.database import db
 from ..schemas.employee_schemas import Employee, EmployeeInput, EmployeeUpdateInput
+from ..schemas.notification_schemas import NotificationInput
+from ..routes.notification_routes import create_notification
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -46,7 +48,7 @@ async def get_staff_member(id: str) -> Optional[Employee]:
         return None
     return None
 
-async def create_staff_member(employee_input: EmployeeInput, agency_id: str) -> Employee:
+async def create_staff_member(employee_input: EmployeeInput, agency_id: str, user_id: str) -> Employee:
     collection = db.get_collection("employees")
     now = datetime.utcnow()
     
@@ -65,6 +67,21 @@ async def create_staff_member(employee_input: EmployeeInput, agency_id: str) -> 
     result = await collection.insert_one(employee_data)
     employee_data["_id"] = result.inserted_id
     
+    # Create notification for new staff member
+    await create_notification(
+        NotificationInput(
+            type="employee_created",
+            title="New Staff Member Created",
+            message=f"Staff member {employee_input.name} has been created with role '{employee_input.role}'",
+            entity_id=str(result.inserted_id),
+            entity_type="employee",
+            user_id=user_id,
+            is_read=False
+        ),
+        agency_id,
+        user_id
+    )
+    
     return Employee(
         id=str(employee_data["_id"]),
         name=employee_data["name"],
@@ -77,7 +94,7 @@ async def create_staff_member(employee_input: EmployeeInput, agency_id: str) -> 
         updatedAt=employee_data["updated_at"]
     )
 
-async def update_staff_member(id: str, employee_input: EmployeeUpdateInput) -> Optional[Employee]:
+async def update_staff_member(id: str, employee_input: EmployeeUpdateInput, agency_id: str, user_id: str) -> Optional[Employee]:
     collection = db.get_collection("employees")
     update_data = {
         "updated_at": datetime.utcnow()
@@ -95,6 +112,23 @@ async def update_staff_member(id: str, employee_input: EmployeeUpdateInput) -> O
             return_document=True
         )
         if result:
+            # Create notification for staff member update
+            changes = [field for field in update_data.keys() if field != "updated_at"]
+            if changes:
+                await create_notification(
+                    NotificationInput(
+                        type="employee_updated",
+                        title="Staff Member Updated",
+                        message=f"Staff member {result['name']} has been updated. Changed fields: {', '.join(changes)}",
+                        entity_id=str(result["_id"]),
+                        entity_type="employee",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    result["agency"],
+                    user_id
+                )
+            
             return Employee(
                 id=str(result["_id"]),
                 name=result["name"],
@@ -110,11 +144,30 @@ async def update_staff_member(id: str, employee_input: EmployeeUpdateInput) -> O
         return None
     return None
 
-async def delete_staff_member(id: str) -> bool:
+async def delete_staff_member(id: str, agency_id: str, user_id: str) -> bool:
     collection = db.get_collection("employees")
     try:
-        result = await collection.delete_one({"_id": ObjectId(id)})
-        return result.deleted_count > 0
+        # Get employee details before deletion for notification
+        employee = await collection.find_one({"_id": ObjectId(id)})
+        if employee:
+            result = await collection.delete_one({"_id": ObjectId(id)})
+            if result.deleted_count > 0:
+                # Create notification for staff member deletion
+                await create_notification(
+                    NotificationInput(
+                        type="employee_deleted",
+                        title="Staff Member Deleted",
+                        message=f"Staff member {employee['name']} has been deleted",
+                        entity_id=str(employee["_id"]),
+                        entity_type="employee",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    employee["agency"],
+                    user_id
+                )
+                return True
+        return False
     except:
         return False
 
@@ -140,7 +193,8 @@ class Mutation:
     @role_required("admin")
     async def create_staff_member(self, info: Info, employee_input: EmployeeInput) -> Employee:
         agency_id = info.context.user.get("agency")
-        return await create_staff_member(employee_input, agency_id)
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await create_staff_member(employee_input, agency_id, user_id)
 
     @strawberry.mutation(name="updateStaffMember")
     @login_required
@@ -148,10 +202,14 @@ class Mutation:
     async def update_staff_member(
         self, info: Info, id: str, employee_input: EmployeeUpdateInput
     ) -> Optional[Employee]:
-        return await update_staff_member(id, employee_input)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await update_staff_member(id, employee_input, agency_id, user_id)
     
     @strawberry.mutation(name="deleteStaffMember")
     @login_required
     @role_required("admin")
     async def delete_staff_member(self, info: Info, id: str) -> bool:
-        return await delete_staff_member(id)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await delete_staff_member(id, agency_id, user_id)

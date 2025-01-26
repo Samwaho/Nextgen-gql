@@ -4,6 +4,8 @@ from datetime import datetime
 from bson import ObjectId
 from ..config.database import db
 from ..schemas.package_schemas import Package, PackageInput, PackageUpdateInput
+from ..schemas.notification_schemas import NotificationInput
+from ..routes.notification_routes import create_notification
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -77,7 +79,7 @@ async def get_package(id: str) -> Optional[Package]:
         return None
     return None
 
-async def create_package(package_input: PackageInput, agency_id: str) -> Package:
+async def create_package(package_input: PackageInput, agency_id: str, user_id: str) -> Package:
     collection = db.get_collection("packages")
     now = datetime.utcnow()
     
@@ -111,6 +113,21 @@ async def create_package(package_input: PackageInput, agency_id: str) -> Package
     result = await collection.insert_one(package_data)
     package_data["_id"] = result.inserted_id
     
+    # Create notification for new package
+    await create_notification(
+        NotificationInput(
+            type="package_created",
+            title="New Package Created",
+            message=f"Package '{package_input.name}' has been created with {package_input.downloadSpeed}/{package_input.uploadSpeed} Mbps speeds",
+            entity_id=str(result.inserted_id),
+            entity_type="package",
+            user_id=user_id,
+            is_read=False
+        ),
+        agency_id,
+        user_id
+    )
+    
     return Package(
         id=str(package_data["_id"]),
         name=package_data["name"],
@@ -139,7 +156,7 @@ async def create_package(package_input: PackageInput, agency_id: str) -> Package
         updatedAt=package_data["updated_at"]
     )
 
-async def update_package(id: str, package_input: PackageUpdateInput) -> Optional[Package]:
+async def update_package(id: str, package_input: PackageUpdateInput, agency_id: str, user_id: str) -> Optional[Package]:
     collection = db.get_collection("packages")
     update_data = {
         "updated_at": datetime.utcnow()
@@ -172,6 +189,28 @@ async def update_package(id: str, package_input: PackageUpdateInput) -> Optional
             return_document=True
         )
         if result:
+            # Create notification for package update
+            changes = [field_mappings.get(field, field) for field in update_data.keys() if field != "updated_at"]
+            if changes:
+                # Special handling for speed changes
+                speed_change = None
+                if "download_speed" in changes or "upload_speed" in changes:
+                    speed_change = f" Speed changed to {result['download_speed']}/{result['upload_speed']} Mbps."
+                
+                await create_notification(
+                    NotificationInput(
+                        type="package_updated",
+                        title="Package Updated",
+                        message=f"Package '{result['name']}' has been updated. Changed fields: {', '.join(changes)}.{speed_change if speed_change else ''}",
+                        entity_id=str(result["_id"]),
+                        entity_type="package",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    result["agency"],
+                    user_id
+                )
+            
             return Package(
                 id=str(result["_id"]),
                 name=result["name"],
@@ -203,11 +242,30 @@ async def update_package(id: str, package_input: PackageUpdateInput) -> Optional
         return None
     return None
 
-async def delete_package(id: str) -> bool:
+async def delete_package(id: str, agency_id: str, user_id: str) -> bool:
     collection = db.get_collection("packages")
     try:
-        result = await collection.delete_one({"_id": ObjectId(id)})
-        return result.deleted_count > 0
+        # Get package details before deletion for notification
+        package = await collection.find_one({"_id": ObjectId(id)})
+        if package:
+            result = await collection.delete_one({"_id": ObjectId(id)})
+            if result.deleted_count > 0:
+                # Create notification for package deletion
+                await create_notification(
+                    NotificationInput(
+                        type="package_deleted",
+                        title="Package Deleted",
+                        message=f"Package '{package['name']}' has been deleted",
+                        entity_id=str(package["_id"]),
+                        entity_type="package",
+                        user_id=user_id,
+                        is_read=False
+                    ),
+                    package["agency"],
+                    user_id
+                )
+                return True
+        return False
     except:
         return False
 
@@ -230,16 +288,21 @@ class Mutation:
     @login_required
     async def create_package(self, info: Info, package_input: PackageInput) -> Package:
         agency_id = info.context.user.get("agency")
-        return await create_package(package_input, agency_id)
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await create_package(package_input, agency_id, user_id)
 
     @strawberry.mutation
     @login_required
     async def update_package(
         self, info: Info, id: str, package_input: PackageUpdateInput
     ) -> Optional[Package]:
-        return await update_package(id, package_input)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await update_package(id, package_input, agency_id, user_id)
     
     @strawberry.mutation
     @login_required
     async def delete_package(self, info: Info, id: str) -> bool:
-        return await delete_package(id)
+        agency_id = info.context.user.get("agency")
+        user_id = str(info.context.user.get("_id"))  # Convert ObjectId to string
+        return await delete_package(id, agency_id, user_id)

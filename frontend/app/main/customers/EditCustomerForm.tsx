@@ -37,6 +37,7 @@ import { format, startOfDay } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { TimePicker } from "@/components/shared/time-picker";
 import { useEffect, useState } from "react";
+import { GET_STATIONS } from "@/graphql/station";
 
 // Create a modified schema for edit mode where password is optional
 const editCustomerSchema = customerSchema.extend({
@@ -47,6 +48,15 @@ type FormValues = z.infer<typeof editCustomerSchema>;
 
 interface PackagesData {
   packages: Package[];
+}
+
+interface StationsData {
+  stations: {
+    id: string;
+    name: string;
+    location: string;
+    buildingType: string;
+  }[];
 }
 
 interface EditCustomerFormProps {
@@ -63,6 +73,12 @@ interface EditCustomerFormProps {
       name: string;
       serviceType: string;
     } | null;
+    station: {
+      id: string;
+      name: string;
+      location: string;
+      address: string;
+    } | null;
     password: string;
   };
 }
@@ -72,6 +88,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
   const { updateCustomer, isUpdating } = useCustomer();
   const { data: packagesData, loading: packagesLoading } =
     useQuery<PackagesData>(GET_PACKAGES);
+  const { data: stationsData, loading: stationsLoading } = useQuery<StationsData>(GET_STATIONS);
   const [mounted, setMounted] = useState(false);
 
   const form = useForm<FormValues>({
@@ -84,6 +101,7 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
       username: customer?.username || "",
       expiry: customer?.expiry || new Date().toISOString(),
       package: customer?.package?.id || null,
+      station: customer?.station?.id || null,
       password: customer?.password || "",
     },
   });
@@ -219,6 +237,46 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="station"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Station
+                </FormLabel>
+                <Select
+                  disabled={stationsLoading}
+                  onValueChange={field.onChange}
+                  value={field.value || undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select station">
+                        {(() => {
+                          const selectedStation = stationsData?.stations.find(s => s.id === field.value);
+                          return selectedStation 
+                            ? `${selectedStation.name} - ${selectedStation.location} (${selectedStation.buildingType})`
+                            : "Select station";
+                        })()}
+                      </SelectValue>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {stationsData?.stations.map((station) => (
+                      <SelectItem key={station.id} value={station.id}>
+                        {station.name} - {station.location} ({station.buildingType})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="expiry"

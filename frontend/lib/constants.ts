@@ -1,33 +1,35 @@
 import {
-  Home,
-  Settings,
   Users,
-  FileText,
-  Mail,
   Box,
   Package,
   UserCog,
   Ticket,
   DollarSign,
-  Building2,
+  Warehouse,
+  Building,
+  LayoutDashboard,
 } from "lucide-react";
 
 interface SidebarItem {
   title: string;
   path: string;
   icon:
-    | typeof Home
-    | typeof Settings
-    | typeof Users
-    | typeof FileText
-    | typeof Mail; // Using Lucide icons
+    | typeof LayoutDashboard
+    | typeof Users 
+    | typeof Box
+    | typeof Building
+    | typeof Package
+    | typeof UserCog
+    | typeof Ticket
+    | typeof DollarSign
+    | typeof Warehouse;
 }
 
 export const sidebarData: SidebarItem[] = [
   {
     title: "Dashboard",
     path: "/main/dashboard",
-    icon: Home,
+    icon: LayoutDashboard,
   },
   {
     title: "Customers",
@@ -38,6 +40,11 @@ export const sidebarData: SidebarItem[] = [
     title: "Packages",
     path: "/main/packages",
     icon: Box,
+  },
+  {
+    title: "Stations",
+    path: "/main/stations",
+    icon: Building,
   },
   {
     title: "Inventory",
@@ -62,6 +69,6 @@ export const sidebarData: SidebarItem[] = [
   {
     title: "Agency",
     path: "/main/agency",
-    icon: Building2,
+    icon: Warehouse,
   },
 ];

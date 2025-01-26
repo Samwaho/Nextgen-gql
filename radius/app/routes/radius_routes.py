@@ -226,13 +226,6 @@ async def radius_authenticate(
             "Reply-Message": "Wrong Password"
         })
     
-    # Check if customer is active
-    if customer.get("status") != "active":
-        logger.warning(f"Customer {username} is not active. Status: {customer.get('status')}")
-        return format_radius_response({
-            "Reply-Message": "Login disabled"
-        })
-    
     # Check if customer's package has expired
     if customer.get("expiry"):
         expiry_date = convert_to_timezone(customer["expiry"])
@@ -243,6 +236,13 @@ async def radius_authenticate(
             return format_radius_response({
                 "Reply-Message": "Access time expired"
             })
+    
+    # Set customer status to online
+    await db.get_collection("customers").update_one(
+        {"_id": customer["_id"]},
+        {"$set": {"status": "online"}}
+    )
+    logger.info(f"Set customer {username} status to online")
     
     logger.info(f"Authentication successful for {username}")
     return Response(status_code=204)
@@ -399,6 +399,15 @@ async def radius_accounting(
                     }
                 )
                 logger.info(f"Updated customer {username} usage stats: {result.modified_count} document(s) modified")
+            
+            # Update customer status based on accounting status
+            if status == "Stop":
+                # Set customer status to offline when session stops
+                await db.get_collection("customers").update_one(
+                    {"_id": customer["_id"]},
+                    {"$set": {"status": "offline"}}
+                )
+                logger.info(f"Set customer {username} status to offline")
             
             return Response(status_code=204)
             

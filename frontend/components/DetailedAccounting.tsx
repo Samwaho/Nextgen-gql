@@ -10,7 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  Download,
+  Upload,
+  Network,
+  Layers,
+  Clock,
+  Activity,
+} from "lucide-react";
 
 interface DetailedAccountingProps {
   username: string;
@@ -62,119 +70,174 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm text-gray-500">Detailed Accounting</CardTitle>
+    <Card className="bg-white dark:bg-gray-800 shadow-sm">
+      <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+            <Activity className="h-4 w-4" />
+          </div>
+          Detailed Accounting
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-8 pt-6">
         <div className="space-y-6">
           {/* Session Information */}
           <div>
-            <h3 className="text-sm font-medium mb-2">Session Information</h3>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Status</TableCell>
-                  <TableCell>{accounting.status}</TableCell>
-                  <TableCell className="font-medium">Session ID</TableCell>
-                  <TableCell>{accounting.sessionId}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Session Time</TableCell>
-                  <TableCell>{formatDuration(accounting.sessionTime)}</TableCell>
-                  <TableCell className="font-medium">Session Hours</TableCell>
-                  <TableCell>{accounting.sessionTimeHours.toFixed(2)} hours</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Idle Timeout</TableCell>
-                  <TableCell>{formatDuration(accounting.idleTimeout)}</TableCell>
-                  <TableCell className="font-medium">Session Timeout</TableCell>
-                  <TableCell>{formatDuration(accounting.sessionTimeout)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-sm font-medium">Session Information</h3>
+            </div>
+            <div className="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">Status</TableCell>
+                    <TableCell>{accounting.status}</TableCell>
+                    <TableCell className="font-medium text-gray-500">Session ID</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.sessionId}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">Session Time</TableCell>
+                    <TableCell>{formatDuration(accounting.sessionTime)}</TableCell>
+                    <TableCell className="font-medium text-gray-500">Session Hours</TableCell>
+                    <TableCell>{accounting.sessionTimeHours.toFixed(2)} hours</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">Idle Timeout</TableCell>
+                    <TableCell>{formatDuration(accounting.idleTimeout)}</TableCell>
+                    <TableCell className="font-medium text-gray-500">Session Timeout</TableCell>
+                    <TableCell>{formatDuration(accounting.sessionTimeout)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           {/* Data Usage */}
           <div>
-            <h3 className="text-sm font-medium mb-2">Data Usage</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Direction</TableHead>
-                  <TableHead>Bytes</TableHead>
-                  <TableHead>Packets</TableHead>
-                  <TableHead>Gigawords</TableHead>
-                  <TableHead>Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Download</TableCell>
-                  <TableCell>{formatBytes(accounting.inputOctets)}</TableCell>
-                  <TableCell>{accounting.inputPackets.toLocaleString()}</TableCell>
-                  <TableCell>{accounting.inputGigawords}</TableCell>
-                  <TableCell>{formatBytes(accounting.totalInputBytes)}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Upload</TableCell>
-                  <TableCell>{formatBytes(accounting.outputOctets)}</TableCell>
-                  <TableCell>{accounting.outputPackets.toLocaleString()}</TableCell>
-                  <TableCell>{accounting.outputGigawords}</TableCell>
-                  <TableCell>{formatBytes(accounting.totalOutputBytes)}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Total</TableCell>
-                  <TableCell>
-                    {formatBytes(accounting.inputOctets + accounting.outputOctets)}
-                  </TableCell>
-                  <TableCell>
-                    {(accounting.inputPackets + accounting.outputPackets).toLocaleString()}
-                  </TableCell>
-                  <TableCell>{accounting.inputGigawords + accounting.outputGigawords}</TableCell>
-                  <TableCell>{formatBytes(accounting.totalBytes)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-md bg-green-100 dark:bg-green-900/30">
+                <Activity className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="text-sm font-medium">Data Usage</h3>
+            </div>
+            <div className="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 dark:bg-gray-800/50">
+                    <TableHead>Direction</TableHead>
+                    <TableHead>Bytes</TableHead>
+                    <TableHead>Packets</TableHead>
+                    <TableHead>Gigawords</TableHead>
+                    <TableHead>Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 rounded-md bg-green-100 dark:bg-green-900/30">
+                          <Download className="h-3 w-3 text-green-600 dark:text-green-400" />
+                        </div>
+                        Download
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatBytes(accounting.inputOctets)}</TableCell>
+                    <TableCell>{accounting.inputPackets.toLocaleString()}</TableCell>
+                    <TableCell>{accounting.inputGigawords}</TableCell>
+                    <TableCell className="font-medium text-green-600 dark:text-green-400">
+                      {formatBytes(accounting.totalInputBytes)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                          <Upload className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        Upload
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatBytes(accounting.outputOctets)}</TableCell>
+                    <TableCell>{accounting.outputPackets.toLocaleString()}</TableCell>
+                    <TableCell>{accounting.outputGigawords}</TableCell>
+                    <TableCell className="font-medium text-blue-600 dark:text-blue-400">
+                      {formatBytes(accounting.totalOutputBytes)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 rounded-md bg-purple-100 dark:bg-purple-900/30">
+                          <Layers className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        Total
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {formatBytes(accounting.inputOctets + accounting.outputOctets)}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {(accounting.inputPackets + accounting.outputPackets).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {accounting.inputGigawords + accounting.outputGigawords}
+                    </TableCell>
+                    <TableCell className="font-medium text-purple-600 dark:text-purple-400">
+                      {formatBytes(accounting.totalBytes)}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           {/* Network Details */}
           <div>
-            <h3 className="text-sm font-medium mb-2">Network Details</h3>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Framed IP</TableCell>
-                  <TableCell>{accounting.framedIpAddress}</TableCell>
-                  <TableCell className="font-medium">Rate Limit</TableCell>
-                  <TableCell>{accounting.mikrotikRateLimit}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Called Station</TableCell>
-                  <TableCell>{accounting.calledStationId}</TableCell>
-                  <TableCell className="font-medium">Calling Station</TableCell>
-                  <TableCell>{accounting.callingStationId}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">NAS IP</TableCell>
-                  <TableCell>{accounting.nasIpAddress}</TableCell>
-                  <TableCell className="font-medium">NAS Identifier</TableCell>
-                  <TableCell>{accounting.nasIdentifier}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">NAS Port</TableCell>
-                  <TableCell>{accounting.nasPort}</TableCell>
-                  <TableCell className="font-medium">NAS Port Type</TableCell>
-                  <TableCell>{accounting.nasPortType}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Service Type</TableCell>
-                  <TableCell>{accounting.serviceType}</TableCell>
-                  <TableCell className="font-medium">Framed Protocol</TableCell>
-                  <TableCell>{accounting.framedProtocol}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30">
+                <Network className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-sm font-medium">Network Details</h3>
+            </div>
+            <div className="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">Framed IP</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.framedIpAddress}</TableCell>
+                    <TableCell className="font-medium text-gray-500">Rate Limit</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.mikrotikRateLimit}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">Called Station</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.calledStationId}</TableCell>
+                    <TableCell className="font-medium text-gray-500">Calling Station</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.callingStationId}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">NAS IP</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.nasIpAddress}</TableCell>
+                    <TableCell className="font-medium text-gray-500">NAS Identifier</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.nasIdentifier}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">NAS Port</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.nasPort}</TableCell>
+                    <TableCell className="font-medium text-gray-500">NAS Port Type</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.nasPortType}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-500">Service Type</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.serviceType}</TableCell>
+                    <TableCell className="font-medium text-gray-500">Framed Protocol</TableCell>
+                    <TableCell className="font-mono text-sm">{accounting.framedProtocol}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       </CardContent>

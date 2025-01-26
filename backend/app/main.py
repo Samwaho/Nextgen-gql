@@ -12,6 +12,7 @@ from app.routes.inventory_routes import Query as InventoryQuery, Mutation as Inv
 from app.routes.package_routes import Query as PackageQuery, Mutation as PackageMutation
 from app.routes.ticket_routes import Query as TicketQuery, Mutation as TicketMutation
 from app.routes.mpesa_routes import Query as MpesaQuery, Mutation as MpesaMutation
+from app.routes.station_routes import Query as StationQuery, Mutation as StationMutation
 from app.schemas.mpesa_schemas import (
     MpesaTransaction, TransactionFilter, CustomerPaymentInput,
     TransactionStatus, TransactionType, CommandID, MpesaCallback,
@@ -34,7 +35,8 @@ logger = logging.getLogger(__name__)
 @strawberry.type
 class Query(
     UserQuery, AgencyQuery, EmployeeQuery, CustomerQuery,
-    InventoryQuery, PackageQuery, TicketQuery, MpesaQuery
+    InventoryQuery, PackageQuery, TicketQuery, MpesaQuery,
+    StationQuery
 ):
     pass
 
@@ -42,7 +44,7 @@ class Query(
 class Mutation(
     UserMutation, AuthMutation, AgencyMutation, EmployeeMutation,
     CustomerMutation, InventoryMutation, PackageMutation, TicketMutation,
-    MpesaMutation
+    MpesaMutation, StationMutation
 ):
     pass
 

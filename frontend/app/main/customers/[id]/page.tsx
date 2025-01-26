@@ -13,7 +13,6 @@ import {
   MapPinIcon,
   PencilIcon,
   TrashIcon,
-  RadioIcon,
   Loader2,
   ArrowLeft,
   WifiIcon,
@@ -22,6 +21,11 @@ import {
   DownloadIcon,
   ActivityIcon,
   NetworkIcon,
+  KeyIcon,
+  ExternalLinkIcon,
+  PhoneCallIcon,
+  MessageCircleIcon,
+  MapIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -99,10 +103,6 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
 
   const customerPackage = packages.find((p) => p.id === customer.package?.id);
 
-  const getBadgeVariant = () => {
-    return "outline" as const;
-  };
-
   const formatBytes = (bytes: number) => {
     if (!bytes) return "0 B";
     const sizes = ["B", "KB", "MB", "GB", "TB"];
@@ -149,6 +149,7 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
           variant="ghost"
           size="icon"
           onClick={() => router.push("/main/customers")}
+          className="hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -156,41 +157,40 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
       </div>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center justify-center gap-3">
-            <div className="bg-gradient-to-tl from-pink-500 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-semibold">
+            <div className="bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-600 dark:to-gray-800 text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl font-semibold shadow-sm">
               {customer.name[0].toUpperCase()}
             </div>
             <div>
               <h1 className="text-2xl font-bold">{customer.name}</h1>
-              <p className="text-gray-500">{customer.email}</p>
+              <div className="flex items-center gap-2 text-gray-500">
+                <MailIcon className="h-4 w-4" />
+                <p>{customer.email}</p>
+              </div>
             </div>
           </div>
-          <Badge
-            variant={getBadgeVariant()}
-            className={`mt-2 sm:mt-0 ${
-              customer.status === "active"
-                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                : customer.status === "expired"
-                ? "bg-red-100 text-red-800 hover:bg-red-100"
-                : "bg-gray-100 text-gray-800 hover:bg-gray-100"
-            }`}
-          >
-            {customer.status.toUpperCase()}
-          </Badge>
+          <div className="flex gap-2 mt-2 sm:mt-0">
+            <Badge variant={customer.status === "online" ? "active" : "offline"}>
+              {customer.status === "online" ? "Online" : "Offline"}
+            </Badge>
+            {new Date(customer.expiry) < new Date() && (
+              <Badge variant="expired">Expired</Badge>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
           <Link href={`/main/customers/${customer.id}/edit`}>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <PencilIcon className="h-4 w-4" />
             </Button>
           </Link>
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="destructive" size="icon">
-                <TrashIcon className="h-4 w-4" />
+              <Button variant="outline" size="icon" className="hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20 transition-colors">
+                <TrashIcon className="h-4 w-4 text-red-600" />
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -218,29 +218,40 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
 
       {/* Details Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="text-lg">Account Information</CardTitle>
+        <Card className="h-fit bg-white dark:bg-gray-800 shadow-sm">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+                <UserIcon className="h-4 w-4" />
+              </div>
+              Account Information
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="grid grid-cols-1 gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 group">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <UserIcon className="h-4 w-4 text-gray-500" />
+                  <div className="p-1.5 rounded-md bg-purple-100 text-purple-600">
+                    <UserIcon className="h-4 w-4" />
+                  </div>
                   <span className="text-gray-500">Username:</span>
                 </div>
                 <span className="font-medium">{customer.username}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <RadioIcon className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-500">PPPoE Password:</span>
+                  <div className="p-1.5 rounded-md bg-blue-100 text-blue-600">
+                    <KeyIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-gray-500">PPPoE Pass:</span>
                 </div>
                 <span className="font-medium">{customer.password}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <PackageIcon className="h-4 w-4 text-gray-500" />
+                  <div className="p-1.5 rounded-md bg-green-100 text-green-600">
+                    <PackageIcon className="h-4 w-4" />
+                  </div>
                   <span className="text-gray-500">Package:</span>
                 </div>
                 <span className="font-medium">
@@ -249,7 +260,27 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <CalendarIcon className="h-4 w-4 text-gray-500" />
+                  <div className="p-1.5 rounded-md bg-orange-100 text-orange-600">
+                    <NetworkIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-gray-500">Station:</span>
+                </div>
+                <div className="font-medium">
+                  {customer.station ? (
+                    <div className="flex flex-col">
+                      <span>{customer.station.name}</span>
+                      <span className="text-xs text-gray-500">{customer.station.location}</span>
+                    </div>
+                  ) : (
+                    "N/A"
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="flex items-center gap-2 min-w-[120px]">
+                  <div className="p-1.5 rounded-md bg-pink-100 text-pink-600">
+                    <CalendarIcon className="h-4 w-4" />
+                  </div>
                   <span className="text-gray-500">Expiry:</span>
                 </div>
                 <span className="font-medium">
@@ -260,32 +291,76 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
           </CardContent>
         </Card>
 
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="text-lg">Contact Information</CardTitle>
+        <Card className="h-fit bg-white dark:bg-gray-800 shadow-sm">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+                <PhoneIcon className="h-4 w-4" />
+              </div>
+              Contact Information
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <MailIcon className="h-4 w-4 text-gray-500" />
+                  <div className="p-1.5 rounded-md bg-purple-100 text-purple-600">
+                    <MailIcon className="h-4 w-4" />
+                  </div>
                   <span className="text-gray-500">Email:</span>
                 </div>
-                <span className="font-medium break-all">{customer.email}</span>
+                <Link 
+                  href={`mailto:${customer.email}`}
+                  className="font-medium hover:text-fuchsia-600 hover:underline flex items-center gap-2 transition-colors"
+                >
+                  <span className="break-all">{customer.email}</span>
+                  <ExternalLinkIcon className="h-4 w-4 text-gray-400" />
+                </Link>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <PhoneIcon className="h-4 w-4 text-gray-500" />
+                  <div className="p-1.5 rounded-md bg-blue-100 text-blue-600">
+                    <PhoneIcon className="h-4 w-4" />
+                  </div>
                   <span className="text-gray-500">Phone:</span>
                 </div>
-                <span className="font-medium">{customer.phone}</span>
+                <div className="flex gap-3">
+                  <Link 
+                    href={`tel:${customer.phone}`}
+                    className="font-medium hover:text-fuchsia-600 hover:underline flex items-center gap-2 transition-colors"
+                  >
+                    <span>{customer.phone}</span>
+                    <PhoneCallIcon className="h-4 w-4 text-gray-400" />
+                  </Link>
+                  <Link 
+                    href={`https://wa.me/${customer.phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    className="font-medium hover:text-green-600 hover:underline flex items-center gap-2 transition-colors"
+                  >
+                    <span>WhatsApp</span>
+                    <MessageCircleIcon className="h-4 w-4 text-gray-400" />
+                  </Link>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <MapPinIcon className="h-4 w-4 text-gray-500" />
+                  <div className="p-1.5 rounded-md bg-green-100 text-green-600">
+                    <MapPinIcon className="h-4 w-4" />
+                  </div>
                   <span className="text-gray-500">Address:</span>
                 </div>
-                <span className="font-medium">{customer.address || "N/A"}</span>
+                {customer.address ? (
+                  <Link 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(customer.address)}`}
+                    target="_blank"
+                    className="font-medium hover:text-fuchsia-600 hover:underline flex items-center gap-2 transition-colors"
+                  >
+                    <span>{customer.address}</span>
+                    <MapIcon className="h-4 w-4 text-gray-400" />
+                  </Link>
+                ) : (
+                  <span className="text-gray-500">N/A</span>
+                )}
               </div>
             </div>
           </CardContent>
@@ -293,22 +368,24 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
 
         {/* Usage Statistics */}
         <div className="col-span-1 lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Usage Statistics</h2>
+          <h2 className="text-lg font-semibold mb-4 px-1">Usage Statistics</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Connection Status Card */}
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-gray-500">Status</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <WifiIcon className={`h-4 w-4 ${isConnected(accounting?.status) ? "text-green-500" : "text-gray-500"}`} />
+                  <div className={`p-1.5 rounded-md ${isConnected(accounting?.status) ? "bg-green-100 dark:bg-green-900/30" : "bg-gray-100 dark:bg-gray-700"}`}>
+                    <WifiIcon className={`h-4 w-4 ${isConnected(accounting?.status) ? "text-green-600 dark:text-green-400" : "text-gray-500"}`} />
+                  </div>
                   <span className="font-medium">
                     {isConnected(accounting?.status) ? "Connected" : "Disconnected"}
                   </span>
                 </div>
                 {accounting?.timestamp && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-2">
                     Last seen: {new Date(accounting.timestamp).toLocaleString()}
                   </p>
                 )}
@@ -316,54 +393,64 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
             </Card>
 
             {/* Total Sessions Card */}
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-gray-500">Total Sessions</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <ActivityIcon className="h-4 w-4 text-purple-500" />
+                  <div className="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
+                    <ActivityIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
                   <span className="font-medium">{accountingHistory.length}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">All time sessions</p>
+                <p className="text-xs text-gray-500 mt-2">All time sessions</p>
               </CardContent>
             </Card>
 
             {/* Total Online Time Card */}
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-gray-500">Total Online Time</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <ClockIcon className="h-4 w-4 text-blue-500" />
+                  <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                    <ClockIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
                   <span className="font-medium">
                     {formatDuration(accounting?.sessionTime || 0)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Current session time</p>
+                <p className="text-xs text-gray-500 mt-2">Current session time</p>
               </CardContent>
             </Card>
 
             {/* Total Data Usage Card */}
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-gray-500">Total Data Usage</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <NetworkIcon className="h-4 w-4 text-indigo-500" />
+                  <div className="p-1.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30">
+                    <NetworkIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
                   <span className="font-medium">
                     {formatBytes((accounting?.totalInputBytes || 0) + (accounting?.totalOutputBytes || 0))}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
-                  <span className="flex items-center gap-1">
-                    <DownloadIcon className="h-3 w-3" />
+                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                  <span className="flex items-center gap-1.5">
+                    <div className="p-1 rounded-md bg-green-100 dark:bg-green-900/30">
+                      <DownloadIcon className="h-3 w-3 text-green-600 dark:text-green-400" />
+                    </div>
                     {formatBytes(accounting?.totalInputBytes || 0)}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <UploadIcon className="h-3 w-3" />
+                  <span className="flex items-center gap-1.5">
+                    <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                      <UploadIcon className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
                     {formatBytes(accounting?.totalOutputBytes || 0)}
                   </span>
                 </div>

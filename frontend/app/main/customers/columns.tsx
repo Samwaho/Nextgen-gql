@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogClose,
@@ -179,23 +180,57 @@ export const columns: ColumnDef<Customer>[] = [
     accessorKey: "status",
     header: () => <div className="text-fuchsia-500">Status</div>,
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      const statusColor =
-        {
-          active:
-            "bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-100",
-          inactive:
-            "bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100",
-          expired: "bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-100",
-        }[status] ||
-        "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100";
+      const status = row.getValue("status") as "online" | "offline";
+      const expiry = new Date(row.original.expiry);
+      const isExpired = expiry < new Date();
+
+      const statusVariant = status === "online" ? "active" : "offline";
 
       return (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
-        >
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
+        <div className="flex gap-2">
+          <Badge variant={statusVariant}>
+            {status === "online" ? "Online" : "Offline"}
+          </Badge>
+          {isExpired && (
+            <Badge variant="expired">
+              Expired
+            </Badge>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "package",
+    header: "Package",
+    cell: ({ row }) => {
+      const pkg = row.original.package;
+      return pkg ? (
+        <div className="flex flex-col">
+          <span className="font-medium">{pkg.name}</span>
+          <span className="text-xs text-muted-foreground capitalize">
+            {pkg.serviceType}
+          </span>
+        </div>
+      ) : (
+        <span className="text-muted-foreground">No package</span>
+      );
+    },
+  },
+  {
+    accessorKey: "station",
+    header: "Station",
+    cell: ({ row }) => {
+      const station = row.original.station;
+      return station ? (
+        <div className="flex flex-col">
+          <span className="font-medium">{station.name}</span>
+          <span className="text-xs text-muted-foreground">
+            {station.location}
+          </span>
+        </div>
+      ) : (
+        <span className="text-muted-foreground">No station</span>
       );
     },
   },

@@ -3,7 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 from ..config.database import db
-from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput, CustomerPackage, AccountingData
+from ..schemas.customer_schemas import Customer, CustomerInput, CustomerUpdateInput, CustomerPackage, CustomerStation, AccountingData
 from ..utils.decorators import login_required, role_required
 from strawberry.types import Info
 
@@ -12,14 +12,21 @@ async def get_customers(agency_id: Optional[str] = None) -> List[Customer]:
     query = {"agency": agency_id} if agency_id else {}
     customers_data = await collection.find(query).sort("created_at", -1).to_list(None)
     
-    # Get all unique package IDs
+    # Get all unique package and station IDs
     package_ids = {ObjectId(customer.get("package")) for customer in customers_data if customer.get("package")}
+    station_ids = {ObjectId(customer.get("station")) for customer in customers_data if customer.get("station")}
     
-    # Fetch all packages in one query
+    # Fetch all packages and stations in one query each
     packages = {}
+    stations = {}
+    
     if package_ids:
         packages_data = await db.get_collection("packages").find({"_id": {"$in": list(package_ids)}}).to_list(None)
         packages = {str(package["_id"]): package for package in packages_data}
+    
+    if station_ids:
+        stations_data = await db.get_collection("stations").find({"_id": {"$in": list(station_ids)}}).to_list(None)
+        stations = {str(station["_id"]): station for station in stations_data}
     
     return [
         Customer(
@@ -35,6 +42,12 @@ async def get_customers(agency_id: Optional[str] = None) -> List[Customer]:
                 name=packages[customer["package"]]["name"],
                 serviceType=packages[customer["package"]]["service_type"]
             ) if customer.get("package") and customer["package"] in packages else None,
+            station=CustomerStation(
+                id=str(stations[customer["station"]]["_id"]),
+                name=stations[customer["station"]]["name"],
+                location=stations[customer["station"]]["location"],
+                address=stations[customer["station"]]["address"]
+            ) if customer.get("station") and customer["station"] in stations else None,
             status=customer.get("status", "inactive"),
             expiry=customer["expiry"],
             password=customer.get("password", ""),
@@ -59,6 +72,18 @@ async def get_customer(id: str) -> Optional[Customer]:
                         serviceType=package_data["service_type"]
                     )
             
+            # Fetch station details if customer has a station
+            station = None
+            if customer.get("station"):
+                station_data = await db.get_collection("stations").find_one({"_id": ObjectId(customer["station"])})
+                if station_data:
+                    station = CustomerStation(
+                        id=str(station_data["_id"]),
+                        name=station_data["name"],
+                        location=station_data["location"],
+                        address=station_data["address"]
+                    )
+            
             return Customer(
                 id=str(customer["_id"]),
                 name=customer["name"],
@@ -68,6 +93,7 @@ async def get_customer(id: str) -> Optional[Customer]:
                 address=customer.get("address"),
                 agency=customer["agency"],
                 package=package,
+                station=station,
                 status=customer.get("status", "inactive"),
                 expiry=customer["expiry"],
                 password=customer.get("password", ""),
@@ -89,6 +115,13 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         if not package_data:
             raise ValueError("Invalid package ID")
     
+    # Verify station exists if specified
+    station_data = None
+    if customer_input.station:
+        station_data = await db.get_collection("stations").find_one({"_id": ObjectId(customer_input.station)})
+        if not station_data:
+            raise ValueError("Invalid station ID")
+    
     customer_data = {
         "name": customer_input.name,
         "email": customer_input.email,
@@ -98,6 +131,7 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         "address": customer_input.address,
         "agency": agency_id,
         "package": customer_input.package,
+        "station": customer_input.station,
         "status": customer_input.status or "inactive",
         "expiry": customer_input.expiry,
         "created_at": now,
@@ -116,6 +150,16 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
             serviceType=package_data["service_type"]
         )
     
+    # Create station object if exists
+    station = None
+    if station_data:
+        station = CustomerStation(
+            id=str(station_data["_id"]),
+            name=station_data["name"],
+            location=station_data["location"],
+            address=station_data["address"]
+        )
+    
     return Customer(
         id=str(customer_data["_id"]),
         name=customer_data["name"],
@@ -125,6 +169,7 @@ async def create_customer(customer_input: CustomerInput, agency_id: str) -> Cust
         address=customer_data.get("address"),
         agency=customer_data["agency"],
         package=package,
+        station=station,
         status=customer_data["status"],
         expiry=customer_data["expiry"],
         password=customer_data["password"],
@@ -145,9 +190,16 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
         if not package_data:
             raise ValueError("Invalid package ID")
     
+    # Verify station exists if being updated
+    station_data = None
+    if customer_input.station:
+        station_data = await db.get_collection("stations").find_one({"_id": ObjectId(customer_input.station)})
+        if not station_data:
+            raise ValueError("Invalid station ID")
+    
     for field in [
         "name", "email", "phone", "username", "address",
-        "package", "status", "expiry", "password"
+        "package", "station", "status", "expiry", "password"
     ]:
         value = getattr(customer_input, field)
         if value is not None:
@@ -171,6 +223,18 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
                         serviceType=package_data["service_type"]
                     )
             
+            # Create station object if exists
+            station = None
+            if result.get("station"):
+                station_data = await db.get_collection("stations").find_one({"_id": ObjectId(result["station"])})
+                if station_data:
+                    station = CustomerStation(
+                        id=str(station_data["_id"]),
+                        name=station_data["name"],
+                        location=station_data["location"],
+                        address=station_data["address"]
+                    )
+            
             return Customer(
                 id=str(result["_id"]),
                 name=result["name"],
@@ -180,6 +244,7 @@ async def update_customer(id: str, customer_input: CustomerUpdateInput) -> Optio
                 address=result.get("address"),
                 agency=result["agency"],
                 package=package,
+                station=station,
                 status=result.get("status", "inactive"),
                 expiry=result["expiry"],
                 password=result.get("password", ""),

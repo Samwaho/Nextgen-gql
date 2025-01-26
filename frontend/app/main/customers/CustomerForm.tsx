@@ -12,6 +12,7 @@ import { z } from "zod";
 import CustomInput from "./CustomInput";
 import { useQuery } from "@apollo/client";
 import { GET_PACKAGES, Package } from "@/graphql/package";
+import { GET_STATIONS } from "@/graphql/station";
 import {
   Select,
   SelectContent,
@@ -44,11 +45,20 @@ interface PackagesData {
   packages: Package[];
 }
 
+interface StationsData {
+  stations: {
+    id: string;
+    name: string;
+    location: string;
+    buildingType: string;
+  }[];
+}
+
 export default function CustomerForm() {
   const router = useRouter();
   const { createCustomer, isCreating } = useCustomer();
-  const { data: packagesData, loading: packagesLoading } =
-    useQuery<PackagesData>(GET_PACKAGES);
+  const { data: packagesData, loading: packagesLoading } = useQuery<PackagesData>(GET_PACKAGES);
+  const { data: stationsData, loading: stationsLoading } = useQuery<StationsData>(GET_STATIONS);
   const [mounted, setMounted] = useState(false);
 
   // Set initial expiry date to tomorrow at current time
@@ -68,6 +78,7 @@ export default function CustomerForm() {
       password: "",
       expiry: initialExpiryDate.toISOString(),
       package: null,
+      station: null,
     },
   });
 
@@ -189,6 +200,39 @@ export default function CustomerForm() {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="station"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Station
+                </FormLabel>
+                <Select
+                  disabled={stationsLoading}
+                  onValueChange={field.onChange}
+                  value={field.value || undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select station" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {stationsData?.stations.map((station) => (
+                      <SelectItem key={station.id} value={station.id}>
+                        {station.name} - {station.location} ({station.buildingType})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="expiry"

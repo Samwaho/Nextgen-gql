@@ -13,7 +13,13 @@ export interface Customer {
     name: string;
     serviceType: string;
   } | null;
-  status: "active" | "inactive" | "expired";
+  station: {
+    id: string;
+    name: string;
+    location: string;
+    address: string;
+  } | null;
+  status: "online" | "offline";
   expiry: string;
   password: string;  // PPPoE password
   createdAt: string;
@@ -63,6 +69,7 @@ export interface CustomerInput {
   password: string;
   address?: string | null;
   package?: string | null;
+  station?: string | null;
   status?: string;
   expiry: string;
 }
@@ -87,6 +94,12 @@ export const GET_CUSTOMERS = gql`
         name
         serviceType
       }
+      station {
+        id
+        name
+        location
+        address
+      }
       status
       expiry
       password
@@ -110,6 +123,12 @@ export const GET_CUSTOMER = gql`
         id
         name
         serviceType
+      }
+      station {
+        id
+        name
+        location
+        address
       }
       status
       expiry
@@ -212,6 +231,12 @@ export const CREATE_CUSTOMER = gql`
         name
         serviceType
       }
+      station {
+        id
+        name
+        location
+        address
+      }
       status
       expiry
       password
@@ -235,6 +260,12 @@ export const UPDATE_CUSTOMER = gql`
         id
         name
         serviceType
+      }
+      station {
+        id
+        name
+        location
+        address
       }
       status
       expiry

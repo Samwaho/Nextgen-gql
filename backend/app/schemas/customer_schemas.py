@@ -9,6 +9,13 @@ class CustomerPackage:
     serviceType: str
 
 @strawberry.type
+class CustomerStation:
+    id: str
+    name: str
+    location: str
+    address: str
+
+@strawberry.type
 class AccountingData:
     username: str
     sessionId: str = strawberry.field(name="sessionId")
@@ -52,6 +59,7 @@ class Customer:
     address: Optional[str]
     agency: str
     package: Optional[CustomerPackage]
+    station: Optional[CustomerStation]
     status: str
     expiry: datetime
     password: str  # PPPoE password
@@ -67,7 +75,8 @@ class CustomerInput:
     password: str
     address: Optional[str] = None
     package: Optional[str] = None
-    status: Optional[str] = "inactive"
+    station: Optional[str] = None
+    status: Optional[str] = "offline"  # Valid values: "online" or "offline"
     expiry: datetime
 
 @strawberry.input
@@ -78,6 +87,7 @@ class CustomerUpdateInput:
     username: Optional[str] = None
     address: Optional[str] = None
     package: Optional[str] = None
+    station: Optional[str] = None
     status: Optional[str] = None
     expiry: Optional[datetime] = None
     password: Optional[str] = None

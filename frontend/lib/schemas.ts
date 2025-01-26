@@ -24,6 +24,7 @@ export const customerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   address: z.string().min(1, "Address is required"),
   package: z.string().nullable(),
+  station: z.string().nullable(),
   expiry: z.string(),
   radiusUsername: z.string().optional(),
 });
@@ -113,12 +114,30 @@ export const agencySchema = z.object({
   mpesaInitiatorPassword: z.string().optional(),
 });
 
+export const stationSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  location: z.string().min(1, "Location is required"),
+  address: z.string().min(1, "Address is required"),
+  coordinates: z.string().optional(),
+  buildingType: z.string().min(1, "Building type is required"),
+  contactPerson: z.string().optional(),
+  contactPhone: z.string().optional(),
+  notes: z.string().optional(),
+  status: z.enum(["active", "inactive"]).default("active"),
+});
+
 // Extended schemas with additional properties
 export const extendedCustomerSchema = customerSchema.extend({
   id: z.string(),
   status: z.enum(["active", "inactive", "expired"]),
   created_at: z.string(),
   updated_at: z.string().nullable(),
+  station: z.object({
+    id: z.string(),
+    name: z.string(),
+    location: z.string(),
+    address: z.string(),
+  }).nullable(),
 });
 
 export const extendedStaffSchema = staffSchema.extend({
@@ -183,6 +202,14 @@ export const extendedAgencySchema = agencySchema.extend({
   updated_at: z.string().nullable(),
 });
 
+export const extendedStationSchema = stationSchema.extend({
+  id: z.string(),
+  agency: z.string(),
+  totalCustomers: z.number(),
+  created_at: z.string(),
+  updated_at: z.string().nullable(),
+});
+
 // Props type definitions
 export type Props = {
   loggedInUser: {
@@ -199,3 +226,4 @@ export type TicketProps = z.infer<typeof extendedTicketSchema>;
 export type RouterProps = z.infer<typeof extendedRouterSchema>;
 export type PackageProps = z.infer<typeof extendedPackageSchema>;
 export type AgencyProps = z.infer<typeof extendedAgencySchema>;
+export type StationProps = z.infer<typeof extendedStationSchema>;

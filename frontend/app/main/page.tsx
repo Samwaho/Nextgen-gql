@@ -9,8 +9,7 @@ import {
   PackageIcon,
   ActivityIcon,
   BarChart3Icon,
-  MapPinIcon,
-  BellIcon
+  MapPinIcon
 } from "lucide-react";
 
 import { Overview } from "@/components/dashboard/Overview";
@@ -22,19 +21,13 @@ import { InventoryStatus } from "@/components/dashboard/InventoryStatus";
 
 export default function DashboardPage() {
   return (
-    <div className="flex-1  min-h-screen">
+    <div className="flex-1 min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
           <p className="text-sm text-muted-foreground">
             Overview of your business metrics and performance
           </p>
-        </div>
-        <div className="relative">
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <BellIcon className="h-5 w-5 text-gray-500" />
-            <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
-          </button>
         </div>
       </div>
       

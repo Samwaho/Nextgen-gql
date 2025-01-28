@@ -22,7 +22,7 @@ export default function EditTicketPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="mt-6">
-          <div className="bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
+          <div className="glass-card bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
@@ -54,7 +54,7 @@ export default function EditTicketPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="mt-6">
-        <div className="bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
+        <div className="glass-card bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
           <EditTicketForm ticket={ticket} />
         </div>
       </div>

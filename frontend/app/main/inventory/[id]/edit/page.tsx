@@ -44,7 +44,7 @@ export default function EditInventoryPage({
         <p className="text-sm text-gray-500">{formatDate()}</p>
       </div>
 
-      <div className="mt-6 bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
+      <div className="mt-6 glass-card bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
         <EditInventoryForm inventory={data?.inventory} />
       </div>
     </div>

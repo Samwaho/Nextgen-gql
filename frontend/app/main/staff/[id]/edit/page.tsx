@@ -54,7 +54,7 @@ export default function EditStaffPage({ params }: { params: Promise<{ id: string
       </div>
 
       <div className="mt-6">
-        <div className="bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
+        <div className="glass-card bg-card_light dark:bg-card_dark p-6 rounded-xl shadow-md">
           <EditStaffForm staff={staff} />
         </div>
       </div>

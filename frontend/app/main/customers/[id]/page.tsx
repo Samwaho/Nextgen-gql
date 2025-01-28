@@ -85,7 +85,7 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
   if (loading || loadingAccounting) {
     return (
       <div className="h-[calc(100vh-10rem)] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-fuchsia-500 dark:text-fuchsia-400" />
       </div>
     );
   }
@@ -93,8 +93,11 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
   if (!customer) {
     return (
       <div className="h-[calc(100vh-10rem)] flex flex-col items-center justify-center gap-4">
-        <h2 className="text-2xl font-semibold">Customer not found</h2>
-        <Button onClick={() => router.push("/main/customers")}>
+        <h2 className="text-2xl font-semibold text-foreground">Customer not found</h2>
+        <Button 
+          onClick={() => router.push("/main/customers")}
+          className="bg-gradient-custom hover:bg-gradient-custom2 text-white transition-all duration-300"
+        >
           Back to Customers
         </Button>
       </div>
@@ -149,23 +152,25 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
           variant="ghost"
           size="icon"
           onClick={() => router.push("/main/customers")}
-          className="hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-xl font-semibold">Customer Details</h1>
+        <h1 className="text-xl font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+          Customer Details
+        </h1>
       </div>
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 glass-card bg-card_light dark:bg-card_dark p-6 rounded-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center justify-center gap-3">
-            <div className="bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-600 dark:to-gray-800 text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl font-semibold shadow-sm">
+            <div className="bg-gradient-custom text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl font-semibold">
               {customer.name[0].toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{customer.name}</h1>
-              <div className="flex items-center gap-2 text-gray-500">
+              <h1 className="text-2xl font-bold text-foreground">{customer.name}</h1>
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <MailIcon className="h-4 w-4" />
                 <p>{customer.email}</p>
               </div>
@@ -182,21 +187,29 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
         </div>
         <div className="flex gap-2">
           <Link href={`/main/customers/${customer.id}/edit`}>
-            <Button variant="outline" size="icon" className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 transition-colors"
+            >
               <PencilIcon className="h-4 w-4" />
             </Button>
           </Link>
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20 transition-colors">
-                <TrashIcon className="h-4 w-4 text-red-600" />
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="hover:bg-rose-100 dark:hover:bg-rose-900/20 transition-colors"
+              >
+                <TrashIcon className="h-4 w-4 text-rose-500" />
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="glass-card">
               <DialogHeader>
                 <DialogTitle>Are you absolutely sure?</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-muted-foreground">
                   This action cannot be undone. This will permanently delete the
                   customer and remove their data from our servers.
                 </DialogDescription>
@@ -218,11 +231,11 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
 
       {/* Details Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="h-fit bg-white dark:bg-gray-800 shadow-sm">
-          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+        <Card className="h-fit glass-card">
+          <CardHeader className="border-b border-border/50">
             <CardTitle className="text-lg flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                <UserIcon className="h-4 w-4" />
+              <div className="p-2 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                <UserIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
               </div>
               Account Information
             </CardTitle>
@@ -231,45 +244,45 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
             <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 group">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-purple-100 text-purple-600">
-                    <UserIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <UserIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Username:</span>
+                  <span className="text-muted-foreground">Username:</span>
                 </div>
-                <span className="font-medium">{customer.username}</span>
+                <span className="font-medium text-foreground">{customer.username}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-blue-100 text-blue-600">
-                    <KeyIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <KeyIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">PPPoE Pass:</span>
+                  <span className="text-muted-foreground">PPPoE Pass:</span>
                 </div>
-                <span className="font-medium">{customer.password}</span>
+                <span className="font-medium text-foreground">{customer.password}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-green-100 text-green-600">
-                    <PackageIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <PackageIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Package:</span>
+                  <span className="text-muted-foreground">Package:</span>
                 </div>
-                <span className="font-medium">
+                <span className="font-medium text-foreground">
                   {customerPackage?.name || "N/A"}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-orange-100 text-orange-600">
-                    <NetworkIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <NetworkIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Station:</span>
+                  <span className="text-muted-foreground">Station:</span>
                 </div>
-                <div className="font-medium">
+                <div className="font-medium text-foreground">
                   {customer.station ? (
                     <div className="flex flex-col">
                       <span>{customer.station.name}</span>
-                      <span className="text-xs text-gray-500">{customer.station.location}</span>
+                      <span className="text-xs text-muted-foreground">{customer.station.location}</span>
                     </div>
                   ) : (
                     "N/A"
@@ -278,12 +291,12 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-pink-100 text-pink-600">
-                    <CalendarIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <CalendarIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Expiry:</span>
+                  <span className="text-muted-foreground">Expiry:</span>
                 </div>
-                <span className="font-medium">
+                <span className="font-medium text-foreground">
                   {mounted ? formatDate(new Date(customer.expiry)) : ''}
                 </span>
               </div>
@@ -291,11 +304,11 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
           </CardContent>
         </Card>
 
-        <Card className="h-fit bg-white dark:bg-gray-800 shadow-sm">
-          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+        <Card className="h-fit glass-card">
+          <CardHeader className="border-b border-border/50">
             <CardTitle className="text-lg flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                <PhoneIcon className="h-4 w-4" />
+              <div className="p-2 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                <PhoneIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
               </div>
               Contact Information
             </CardTitle>
@@ -304,50 +317,50 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
             <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-purple-100 text-purple-600">
-                    <MailIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <MailIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Email:</span>
+                  <span className="text-muted-foreground">Email:</span>
                 </div>
                 <Link 
                   href={`mailto:${customer.email}`}
                   className="font-medium hover:text-fuchsia-600 hover:underline flex items-center gap-2 transition-colors"
                 >
-                  <span className="break-all">{customer.email}</span>
-                  <ExternalLinkIcon className="h-4 w-4 text-gray-400" />
+                  <span className="break-all text-foreground">{customer.email}</span>
+                  <ExternalLinkIcon className="h-4 w-4 text-muted-foreground" />
                 </Link>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-blue-100 text-blue-600">
-                    <PhoneIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <PhoneIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Phone:</span>
+                  <span className="text-muted-foreground">Phone:</span>
                 </div>
                 <div className="flex gap-3">
                   <Link 
                     href={`tel:${customer.phone}`}
                     className="font-medium hover:text-fuchsia-600 hover:underline flex items-center gap-2 transition-colors"
                   >
-                    <span>{customer.phone}</span>
-                    <PhoneCallIcon className="h-4 w-4 text-gray-400" />
+                    <span className="text-foreground">{customer.phone}</span>
+                    <PhoneCallIcon className="h-4 w-4 text-muted-foreground" />
                   </Link>
                   <Link 
                     href={`https://wa.me/${customer.phone.replace(/\D/g, '')}`}
                     target="_blank"
                     className="font-medium hover:text-green-600 hover:underline flex items-center gap-2 transition-colors"
                   >
-                    <span>WhatsApp</span>
-                    <MessageCircleIcon className="h-4 w-4 text-gray-400" />
+                    <span className="text-foreground">WhatsApp</span>
+                    <MessageCircleIcon className="h-4 w-4 text-muted-foreground" />
                   </Link>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                 <div className="flex items-center gap-2 min-w-[120px]">
-                  <div className="p-1.5 rounded-md bg-green-100 text-green-600">
-                    <MapPinIcon className="h-4 w-4" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <MapPinIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="text-gray-500">Address:</span>
+                  <span className="text-muted-foreground">Address:</span>
                 </div>
                 {customer.address ? (
                   <Link 
@@ -355,11 +368,11 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
                     target="_blank"
                     className="font-medium hover:text-fuchsia-600 hover:underline flex items-center gap-2 transition-colors"
                   >
-                    <span>{customer.address}</span>
-                    <MapIcon className="h-4 w-4 text-gray-400" />
+                    <span className="text-foreground">{customer.address}</span>
+                    <MapIcon className="h-4 w-4 text-muted-foreground" />
                   </Link>
                 ) : (
-                  <span className="text-gray-500">N/A</span>
+                  <span className="text-muted-foreground">N/A</span>
                 )}
               </div>
             </div>
@@ -368,24 +381,26 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
 
         {/* Usage Statistics */}
         <div className="col-span-1 lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4 px-1">Usage Statistics</h2>
+          <h2 className="text-lg font-semibold mb-4 px-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            Usage Statistics
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Connection Status Card */}
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+            <Card className="glass-card">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-500">Status</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">Status</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-md ${isConnected(accounting?.status) ? "bg-green-100 dark:bg-green-900/30" : "bg-gray-100 dark:bg-gray-700"}`}>
-                    <WifiIcon className={`h-4 w-4 ${isConnected(accounting?.status) ? "text-green-600 dark:text-green-400" : "text-gray-500"}`} />
+                  <div className={`p-1.5 rounded-md ${isConnected(accounting?.status) ? "bg-emerald-100 dark:bg-emerald-900/20" : "bg-rose-100 dark:bg-rose-900/20"}`}>
+                    <WifiIcon className={`h-4 w-4 ${isConnected(accounting?.status) ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`} />
                   </div>
-                  <span className="font-medium">
+                  <span className="font-medium text-foreground">
                     {isConnected(accounting?.status) ? "Connected" : "Disconnected"}
                   </span>
                 </div>
                 {accounting?.timestamp && (
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Last seen: {new Date(accounting.timestamp).toLocaleString()}
                   </p>
                 )}
@@ -393,63 +408,63 @@ export default function ViewCustomer({ params }: ViewCustomerProps) {
             </Card>
 
             {/* Total Sessions Card */}
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+            <Card className="glass-card">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-500">Total Sessions</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">Total Sessions</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
-                    <ActivityIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <ActivityIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="font-medium">{accountingHistory.length}</span>
+                  <span className="font-medium text-foreground">{accountingHistory.length}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">All time sessions</p>
+                <p className="text-xs text-muted-foreground mt-2">All time sessions</p>
               </CardContent>
             </Card>
 
             {/* Total Online Time Card */}
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+            <Card className="glass-card">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-500">Total Online Time</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">Total Online Time</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
-                    <ClockIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <ClockIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="font-medium">
+                  <span className="font-medium text-foreground">
                     {formatDuration(accounting?.sessionTime || 0)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Current session time</p>
+                <p className="text-xs text-muted-foreground mt-2">Current session time</p>
               </CardContent>
             </Card>
 
             {/* Total Data Usage Card */}
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+            <Card className="glass-card">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-500">Total Data Usage</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">Total Data Usage</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30">
-                    <NetworkIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <NetworkIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
                   </div>
-                  <span className="font-medium">
+                  <span className="font-medium text-foreground">
                     {formatBytes((accounting?.totalInputBytes || 0) + (accounting?.totalOutputBytes || 0))}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
                   <span className="flex items-center gap-1.5">
-                    <div className="p-1 rounded-md bg-green-100 dark:bg-green-900/30">
-                      <DownloadIcon className="h-3 w-3 text-green-600 dark:text-green-400" />
+                    <div className="p-1 rounded-md bg-emerald-100 dark:bg-emerald-900/20">
+                      <DownloadIcon className="h-3 w-3 text-emerald-500 dark:text-emerald-400" />
                     </div>
                     {formatBytes(accounting?.totalInputBytes || 0)}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
-                      <UploadIcon className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    <div className="p-1 rounded-md bg-sky-100 dark:bg-sky-900/20">
+                      <UploadIcon className="h-3 w-3 text-sky-500 dark:text-sky-400" />
                     </div>
                     {formatBytes(accounting?.totalOutputBytes || 0)}
                   </span>

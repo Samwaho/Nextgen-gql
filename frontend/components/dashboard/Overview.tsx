@@ -12,12 +12,12 @@ interface ChartDataPoint {
 }
 
 const EmptyChart = () => (
-  <div className="h-[350px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-      <TrendingUpIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+  <div className="h-[350px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-border/50 rounded-lg">
+    <div className="p-3 bg-fuchsia-100 dark:bg-fuchsia-900/20 rounded-full mb-4">
+      <TrendingUpIcon className="h-6 w-6 text-fuchsia-500 dark:text-fuchsia-400" />
     </div>
-    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No transactions yet</h3>
-    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[300px]">
+    <h3 className="text-lg font-semibold text-foreground mb-2">No transactions yet</h3>
+    <p className="text-sm text-muted-foreground max-w-[300px]">
       Start recording transactions to see your revenue analytics here.
     </p>
   </div>
@@ -26,8 +26,8 @@ const EmptyChart = () => (
 const LoadingChart = () => (
   <div className="h-[350px] flex items-center justify-center">
     <div className="flex flex-col items-center gap-2">
-      <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400" />
-      <span className="text-sm text-gray-500 dark:text-gray-400">Loading data...</span>
+      <Loader2 className="h-8 w-8 animate-spin text-fuchsia-500" />
+      <span className="text-sm text-muted-foreground">Loading data...</span>
     </div>
   </div>
 );
@@ -44,15 +44,15 @@ interface CustomTooltipProps extends TooltipProps<number, string> {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{label}</p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Amount: <span className="font-medium text-purple-600 dark:text-purple-400">
-            ${payload[0].value.toLocaleString()}
+      <div className="glass-card p-3 rounded-lg shadow-lg">
+        <p className="text-sm font-medium text-foreground mb-1">{label}</p>
+        <p className="text-sm text-muted-foreground">
+          Amount: <span className="font-medium bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            KES {payload[0].value.toLocaleString()}
           </span>
         </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Transactions: <span className="font-medium text-blue-600 dark:text-blue-400">
+        <p className="text-sm text-muted-foreground">
+          Transactions: <span className="font-medium text-fuchsia-500 dark:text-fuchsia-400">
             {payload[0].payload.count}
           </span>
         </p>
@@ -102,14 +102,18 @@ export function Overview() {
       {trend !== 0 && (
         <div className="flex items-center gap-2 px-2">
           {trend > 0 ? (
-            <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-              <TrendingUpIcon className="h-4 w-4" />
-              <span className="text-sm font-medium">Trending up</span>
+            <div className="flex items-center gap-1.5">
+              <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-full">
+                <TrendingUpIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Trending up</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
-              <TrendingDownIcon className="h-4 w-4" />
-              <span className="text-sm font-medium">Trending down</span>
+            <div className="flex items-center gap-1.5">
+              <div className="p-1.5 bg-rose-100 dark:bg-rose-900/20 rounded-full">
+                <TrendingDownIcon className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+              </div>
+              <span className="text-sm font-medium text-rose-600 dark:text-rose-400">Trending down</span>
             </div>
           )}
         </div>
@@ -129,20 +133,26 @@ export function Overview() {
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => `KES ${value.toLocaleString()}`}
           />
           <Tooltip content={<CustomTooltip />} />
           <Line
             type="monotone"
             dataKey="amount"
-            stroke="#8884d8"
+            stroke="url(#gradient)"
             strokeWidth={2}
             dot={false}
             activeDot={{ 
               r: 6, 
-              style: { fill: '#8884d8', strokeWidth: 0 }
+              style: { fill: '#d946ef', strokeWidth: 0 }
             }}
           />
+          <defs>
+            <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#d946ef" />
+            </linearGradient>
+          </defs>
         </LineChart>
       </ResponsiveContainer>
     </div>

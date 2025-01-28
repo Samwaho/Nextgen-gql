@@ -22,8 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Ticket, Pencil, User, Clock, UserCircle2, Trash2, CalendarDays } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_TICKETS, UPDATE_TICKET, useTicket, UPDATE_TICKET_STATUS } from "@/graphql/ticket";
@@ -172,7 +170,7 @@ export default function TicketsPage() {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
+              className="glass-card bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
             >
               <div className="flex justify-between items-start">
                 <Skeleton className="h-4 w-24" />
@@ -192,14 +190,14 @@ export default function TicketsPage() {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((column) => (
             <div key={column} className="space-y-4">
-              <div className="bg-card_light dark:bg-card_dark rounded-t-lg p-2">
+              <div className="glass-card rounded-t-lg p-2">
                 <Skeleton className="h-7 w-24" />
               </div>
-              <div className="bg-card_light dark:bg-card_dark p-2 min-h-[200px] rounded-b-lg space-y-4">
+              <div className="glass-card bg-card_light dark:bg-card_dark p-2 min-h-[200px] rounded-b-lg space-y-4">
                 {[1, 2].map((card) => (
                   <div
                     key={card}
-                    className="bg-background rounded-lg p-4 space-y-4"
+                    className="bg-card_light dark:bg-card_dark rounded-lg p-4 space-y-4"
                   >
                     <div className="flex justify-between">
                       <div className="space-y-2 flex-1">
@@ -251,12 +249,14 @@ export default function TicketsPage() {
     <div className="mt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg md:text-xl font-bold">
-          <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+          <span className="text-muted-foreground text-sm font-normal">
             page/{" "}
           </span>
-          Support Tickets
+          <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            Support Tickets
+          </span>
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-muted-foreground text-sm">
           {formatDate()}
         </p>
       </div>
@@ -285,10 +285,12 @@ export default function TicketsPage() {
       </div>
 
       <div className="flex flex-col gap-2 mt-4 sm:mt-6">
-        <h4 className="text-base md:text-lg font-semibold">Tickets Table</h4>
+        <h4 className="text-base md:text-lg font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+          Tickets Table
+        </h4>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <CalendarDays className="h-4 w-4 text-gray-500" />
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
             <Select
               value={dateFilter}
               onValueChange={(value: DateFilter) => setDateFilter(value)}
@@ -306,7 +308,7 @@ export default function TicketsPage() {
             </Select>
           </div>
           <Link href="/main/tickets/new">
-            <Button className="bg-gradient-custom flex items-center gap-2 px-3 py-2 text-sm md:text-base text-white rounded-md whitespace-nowrap">
+            <Button className="bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 flex items-center gap-2 px-3 py-2 text-sm md:text-base text-white rounded-md whitespace-nowrap">
               <Ticket className="h-4 w-4" />
               <p>Add New</p>
             </Button>
@@ -359,17 +361,17 @@ function TicketCard({
   description: string;
 }) {
   return (
-    <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-1.5 sm:gap-2 shadow-md p-2 sm:p-3 flex-1 min-w-[120px] sm:min-w-[150px] max-w-[200px] sm:max-w-[250px]">
+    <div className="glass-card bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-1.5 sm:gap-2 shadow-md p-2 sm:p-3 flex-1 min-w-[120px] sm:min-w-[150px] max-w-[200px] sm:max-w-[250px]">
       <div className="flex justify-between items-start">
-        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           {title}
         </p>
         <div className="p-0.5 sm:p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
           <Ticket className="h-3 w-3 sm:h-4 sm:w-4" />
         </div>
       </div>
-      <h1 className="font-bold text-base sm:text-lg">{count}</h1>
-      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+      <h1 className="font-bold text-base sm:text-lg text-foreground">{count}</h1>
+      <p className="text-xs sm:text-sm text-muted-foreground">
         {description}
       </p>
     </div>
@@ -466,12 +468,12 @@ function TicketColumn({
 
   return (
     <div className="" onDragOver={handleDragOver} onDrop={handleDrop}>
-      <div className="bg-card_light dark:bg-card_dark rounded-t-lg p-2">
-        <h2 className="text-base sm:text-lg font-semibold text-fuchsia-500 dark:text-fuchsia-400">
+      <div className="glass-card bg-card_light dark:bg-card_dark rounded-t-lg p-2">
+        <h2 className="text-base sm:text-lg font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
           {title}
         </h2>
       </div>
-      <div className="bg-card_light dark:bg-card_dark mt-2 rounded-b-lg p-2 min-h-[200px]">
+      <div className="glass-card bg-card_light dark:bg-card_dark mt-2 rounded-b-lg p-2 min-h-[200px]">
         {tickets.map((ticket) => {
           const ticketData = {
             id: ticket.id,
@@ -502,23 +504,23 @@ function TicketColumn({
           );
 
           return (
-            <Card
+            <div
               key={ticket.id}
-              className="mb-3 sm:mb-4 cursor-move hover:shadow-md transition-shadow"
+              className="relative mb-3 sm:mb-4 cursor-move hover:shadow-md transition-all duration-300 rounded-xl glass-card bg-card_light dark:bg-card_dark border border-border/50 overflow-hidden"
               draggable
               onDragStart={(e) => handleDragStart(ticket, e)}
             >
-              <CardHeader className="p-3 sm:p-4">
+              <div className="p-3 sm:p-4">
                 <div className="flex justify-between items-start gap-2 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                       <Badge
                         className={
                           ticket.priority === "high"
-                            ? "bg-red-500"
+                            ? "bg-rose-500 text-white dark:bg-rose-400 dark:text-white"
                             : ticket.priority === "medium"
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
+                            ? "bg-amber-500 text-white dark:bg-amber-400 dark:text-white"
+                            : "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-white"
                         }
                       >
                         {ticket.priority}
@@ -527,19 +529,19 @@ function TicketColumn({
                         variant="outline"
                         className={
                           ticket.status === "open"
-                            ? "border-blue-500 text-blue-500"
+                            ? "border-sky-500 text-sky-500"
                             : ticket.status === "in-progress"
-                            ? "border-orange-500 text-orange-500"
-                            : "border-green-500 text-green-500"
+                            ? "border-amber-500 text-amber-500"
+                            : "border-emerald-500 text-emerald-500"
                         }
                       >
                         {ticket.status.replace("-", " ")}
                       </Badge>
                     </div>
-                    <h3 className="font-semibold text-base sm:text-lg mb-1 truncate">
+                    <h3 className="font-semibold text-base sm:text-lg mb-1 truncate text-foreground">
                       {ticket.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                       {ticket.description}
                     </p>
                   </div>
@@ -548,8 +550,7 @@ function TicketColumn({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => e.stopPropagation()}
+                        className="h-8 w-8 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -563,19 +564,19 @@ function TicketColumn({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                          className="h-8 w-8 hover:bg-rose-100 dark:hover:bg-rose-900/20"
                           onClick={(e) => {
                             e.stopPropagation();
                             setTicketToDelete(ticket.id);
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-rose-500" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="glass-card">
                         <DialogHeader>
                           <DialogTitle>Delete Ticket</DialogTitle>
-                          <DialogDescription>
+                          <DialogDescription className="text-muted-foreground">
                             Are you sure you want to delete this ticket? This
                             action cannot be undone.
                           </DialogDescription>
@@ -606,12 +607,14 @@ function TicketColumn({
                     </Dialog>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
+              </div>
+              <div className="p-4 pt-0">
                 <div className="mt-4 space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
-                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                    <p className="text-xs sm:text-sm text-gray-500 truncate">
+                    <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                      <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-fuchsia-500 dark:text-fuchsia-400" />
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {customer
                         ? `${customer.name} (${customer.email})`
                         : "Loading customer..."}
@@ -619,7 +622,9 @@ function TicketColumn({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <UserCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                    <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                      <UserCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-fuchsia-500 dark:text-fuchsia-400" />
+                    </div>
                     <Select
                       value={assignedEmployee?.id || "unassigned"}
                       onValueChange={(value) =>
@@ -648,14 +653,16 @@ function TicketColumn({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                    <p className="text-xs sm:text-sm text-gray-500">
+                    <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-fuchsia-500 dark:text-fuchsia-400" />
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {formatTicketDate(ticketData.createdAt)}
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>

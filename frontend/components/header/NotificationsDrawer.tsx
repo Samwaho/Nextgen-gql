@@ -70,9 +70,11 @@ const NotificationsList = dynamic(() => Promise.resolve(({
 
   if (notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-        <Bell className="h-12 w-12 mb-4 opacity-20" />
-        <p className="text-sm">No notifications yet</p>
+      <div className="flex flex-col items-center justify-center h-48">
+        <div className="p-3 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+          <Bell className="h-12 w-12 text-fuchsia-500 dark:text-fuchsia-400" />
+        </div>
+        <p className="text-sm text-muted-foreground mt-4">No notifications yet</p>
       </div>
     );
   }
@@ -83,23 +85,23 @@ const NotificationsList = dynamic(() => Promise.resolve(({
         <div
           key={notification.id}
           className={cn(
-            "p-4 rounded-lg border transition-colors hover:bg-accent/5",
+            "relative p-4 rounded-xl border border-border/50 transition-all duration-300 glass-card",
             notification.isRead
-              ? "bg-background opacity-75"
-              : "bg-accent/10 cursor-pointer shadow-sm"
+              ? "opacity-75"
+              : "cursor-pointer shadow-sm hover:shadow-md"
           )}
           onClick={() => !notification.isRead && onMarkAsRead(notification)}
         >
           <div className="flex items-start gap-3">
-            <div className="text-2xl bg-background rounded-full p-2 shadow-sm">
+            <div className="p-2 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20 text-2xl">
               {getNotificationIcon(notification.type)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <h4 className="text-sm font-semibold truncate">
+                <h4 className="text-sm font-semibold truncate text-foreground">
                   {notification.title}
                 </h4>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap bg-muted px-2 py-0.5 rounded-full">
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap bg-accent/10 px-2 py-0.5 rounded-full">
                   {mounted ? formatNotificationDate(notification.createdAt) : ""}
                 </span>
               </div>
@@ -107,15 +109,19 @@ const NotificationsList = dynamic(() => Promise.resolve(({
                 {notification.message}
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-background px-2 py-1 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  {notification.userName || 'Unknown User'}
-                </span>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-accent/10">
+                  <div className="p-1 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-fuchsia-500 dark:text-fuchsia-400">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {notification.userName || 'Unknown User'}
+                  </span>
+                </div>
                 {!notification.isRead && (
-                  <span className="text-[10px] text-primary flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-fuchsia-500 dark:text-fuchsia-400 flex items-center gap-1 bg-fuchsia-100 dark:bg-fuchsia-900/20 px-2 py-0.5 rounded-full">
                     New
                   </span>
                 )}
@@ -302,55 +308,60 @@ const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({ loggedInUser 
         <Button 
           variant="ghost" 
           size="icon" 
-          className="relative hover:bg-accent/10"
+          className="relative hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
           aria-label="Open notifications"
         >
           <Bell className="h-5 w-5" />
           {!unreadLoading && unreadCount > 0 && (
             <Badge
-              className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center p-0 text-[10px] bg-primary text-primary-foreground shadow-sm"
+              className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center p-0 text-[10px] bg-fuchsia-500 text-white dark:bg-fuchsia-400 dark:text-white shadow-sm"
             >
               {unreadCount}
             </Badge>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:w-[440px] p-6">
+      <SheetContent className="w-full sm:w-[440px] p-6 glass-card">
         <SheetHeader className="space-y-4 mb-5">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-semibold">Notifications</SheetTitle>
+            <SheetTitle className="text-xl font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+              Notifications
+            </SheetTitle>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleMarkAllAsRead}
                 disabled={loading}
-                className="text-xs hover:bg-accent/10"
+                className="text-xs hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
               >
                 Mark all as read
               </Button>
             )}
           </div>
-          <div className="h-[1px] bg-border" />
+          <div className="h-[1px] bg-border/50" />
         </SheetHeader>
         
         <ScrollArea className="h-[calc(100vh-8rem)]">
           {error ? (
-            <div className="flex flex-col items-center justify-center h-48 text-destructive">
-              <p className="text-sm">Error loading notifications</p>
+            <div className="flex flex-col items-center justify-center h-48">
+              <div className="p-3 rounded-lg bg-rose-100 dark:bg-rose-900/20">
+                <Bell className="h-12 w-12 text-rose-500 dark:text-rose-400" />
+              </div>
+              <p className="text-sm text-rose-500 dark:text-rose-400 mt-4">Error loading notifications</p>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => fetchNotifications()}
-                className="mt-2"
+                className="mt-2 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
               >
                 Try again
               </Button>
             </div>
           ) : loading && page === 1 ? (
             <div className="flex items-center justify-center h-48">
-              <div className="animate-spin">
-                <svg className="h-6 w-6 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <div className="animate-spin text-fuchsia-500 dark:text-fuchsia-400">
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -366,13 +377,13 @@ const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({ loggedInUser 
               {data?.notifications.length === NOTIFICATIONS_PER_PAGE && (
                 <Button
                   variant="ghost"
-                  className="w-full mt-4 text-xs hover:bg-accent/10"
+                  className="w-full mt-4 text-xs hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
                   onClick={handleLoadMore}
                   disabled={loading}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

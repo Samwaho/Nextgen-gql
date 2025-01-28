@@ -21,17 +21,19 @@ const Page = () => {
       <div className="mt-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">
-            <span className="text-sm font-normal text-gray-500">page/ </span>
-            Packages
+            <span className="text-sm font-normal text-muted-foreground">page/ </span>
+            <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+              Packages
+            </span>
           </h1>
-          <p className="text-sm text-gray-500">{format(new Date(), "PPP")}</p>
+          <p className="text-sm text-muted-foreground">{format(new Date(), "PPP")}</p>
         </div>
 
         <div className="flex gap-4 mt-6 flex-wrap">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
+              className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
             >
               <div className="flex justify-between">
                 <Skeleton className="h-4 w-24" />
@@ -49,7 +51,7 @@ const Page = () => {
         </div>
 
         <div className="mt-4">
-          <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
+          <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
             <div className="flex flex-col gap-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-12 w-full" />
@@ -60,7 +62,24 @@ const Page = () => {
       </div>
     );
   }
-  if (error) return <div>Error loading packages</div>;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)]">
+        <div className="p-3 rounded-lg bg-rose-100 dark:bg-rose-900/20">
+          <Box className="h-12 w-12 text-rose-500 dark:text-rose-400" />
+        </div>
+        <p className="text-sm text-rose-500 dark:text-rose-400 mt-4">Error loading packages</p>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => window.location.reload()}
+          className="mt-2 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
+        >
+          Try again
+        </Button>
+      </div>
+    );
+  }
 
   const packages = data?.packages || [];
   const totalPackages = packages.length;
@@ -75,60 +94,64 @@ const Page = () => {
     <div className="mt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          <span className="text-sm font-normal text-gray-500">page/ </span>
-          Packages
+          <span className="text-sm font-normal text-muted-foreground">page/ </span>
+          <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            Packages
+          </span>
         </h1>
-        <p className="text-sm text-gray-500">{format(new Date(), "PPP")}</p>
+        <p className="text-sm text-muted-foreground">{format(new Date(), "PPP")}</p>
       </div>
 
       <div className="flex gap-4 mt-6 flex-wrap">
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Total Packages</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Box size={16} />
+            <p className="text-sm text-muted-foreground">Total Packages</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Box className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{totalPackages}</h1>
-          <p className="text-xs md:text-sm text-gray-500">All packages</p>
+          <h1 className="font-bold text-lg text-foreground">{totalPackages}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">All packages</p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">PPPoE Packages</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Radio size={16} />
+            <p className="text-sm text-muted-foreground">PPPoE Packages</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Radio className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{pppoePackages}</h1>
-          <p className="text-xs md:text-sm text-gray-500">
+          <h1 className="font-bold text-lg text-foreground">{pppoePackages}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             PPPoE service packages
           </p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Hotspot Packages</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Satellite size={16} />
+            <p className="text-sm text-muted-foreground">Hotspot Packages</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Satellite className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{hotspotPackages}</h1>
-          <p className="text-xs md:text-sm text-gray-500">
+          <h1 className="font-bold text-lg text-foreground">{hotspotPackages}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Hotspot service packages
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between mt-6">
-        <h4 className="text-lg font-semibold">Package Table</h4>
+        <h4 className="text-lg font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+          Package Table
+        </h4>
         <Link href="/main/packages/new">
-          <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
-            <Plus size={18} />
+          <Button className="bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+            <Plus className="h-4 w-4" />
             <p>Add New</p>
           </Button>
         </Link>
       </div>
       <div className="mt-4">
-        <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
+        <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
           <DataTable columns={columns} data={packages} />
         </div>
       </div>

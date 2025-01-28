@@ -36,7 +36,7 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-fuchsia-500 dark:text-fuchsia-400" />
       </div>
     );
   }
@@ -70,13 +70,13 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
   };
 
   return (
-    <Card className="bg-white dark:bg-gray-800 shadow-sm">
-      <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+    <Card className="glass-card">
+      <CardHeader className="border-b border-border/50">
         <CardTitle className="text-lg flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-            <Activity className="h-4 w-4" />
+          <div className="p-2 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+            <Activity className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
           </div>
-          Detailed Accounting
+          <span className="text-foreground">Detailed Accounting</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-8 pt-6">
@@ -84,31 +84,31 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
           {/* Session Information */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
-                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                <Clock className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
               </div>
-              <h3 className="text-sm font-medium">Session Information</h3>
+              <h3 className="text-sm font-medium text-foreground">Session Information</h3>
             </div>
-            <div className="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="rounded-lg border border-border/50 overflow-hidden">
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">Status</TableCell>
-                    <TableCell>{accounting.status}</TableCell>
-                    <TableCell className="font-medium text-gray-500">Session ID</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.sessionId}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Status</TableCell>
+                    <TableCell className="text-foreground">{accounting.status}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Session ID</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.sessionId}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">Session Time</TableCell>
-                    <TableCell>{formatDuration(accounting.sessionTime)}</TableCell>
-                    <TableCell className="font-medium text-gray-500">Session Hours</TableCell>
-                    <TableCell>{accounting.sessionTimeHours.toFixed(2)} hours</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Session Time</TableCell>
+                    <TableCell className="text-foreground">{formatDuration(accounting.sessionTime)}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Session Hours</TableCell>
+                    <TableCell className="text-foreground">{accounting.sessionTimeHours.toFixed(2)} hours</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">Idle Timeout</TableCell>
-                    <TableCell>{formatDuration(accounting.idleTimeout)}</TableCell>
-                    <TableCell className="font-medium text-gray-500">Session Timeout</TableCell>
-                    <TableCell>{formatDuration(accounting.sessionTimeout)}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Idle Timeout</TableCell>
+                    <TableCell className="text-foreground">{formatDuration(accounting.idleTimeout)}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Session Timeout</TableCell>
+                    <TableCell className="text-foreground">{formatDuration(accounting.sessionTimeout)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -118,15 +118,15 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
           {/* Data Usage */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-md bg-green-100 dark:bg-green-900/30">
-                <Activity className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                <Activity className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
               </div>
-              <h3 className="text-sm font-medium">Data Usage</h3>
+              <h3 className="text-sm font-medium text-foreground">Data Usage</h3>
             </div>
-            <div className="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="rounded-lg border border-border/50 overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50 dark:bg-gray-800/50">
+                  <TableRow className="bg-muted/50">
                     <TableHead>Direction</TableHead>
                     <TableHead>Bytes</TableHead>
                     <TableHead>Packets</TableHead>
@@ -138,54 +138,54 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
                   <TableRow>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-md bg-green-100 dark:bg-green-900/30">
-                          <Download className="h-3 w-3 text-green-600 dark:text-green-400" />
+                        <div className="p-1 rounded-md bg-emerald-100 dark:bg-emerald-900/20">
+                          <Download className="h-3 w-3 text-emerald-500 dark:text-emerald-400" />
                         </div>
-                        Download
+                        <span className="text-foreground">Download</span>
                       </div>
                     </TableCell>
-                    <TableCell>{formatBytes(accounting.inputOctets)}</TableCell>
-                    <TableCell>{accounting.inputPackets.toLocaleString()}</TableCell>
-                    <TableCell>{accounting.inputGigawords}</TableCell>
-                    <TableCell className="font-medium text-green-600 dark:text-green-400">
+                    <TableCell className="text-foreground">{formatBytes(accounting.inputOctets)}</TableCell>
+                    <TableCell className="text-foreground">{accounting.inputPackets.toLocaleString()}</TableCell>
+                    <TableCell className="text-foreground">{accounting.inputGigawords}</TableCell>
+                    <TableCell className="font-medium text-emerald-500 dark:text-emerald-400">
                       {formatBytes(accounting.totalInputBytes)}
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
-                          <Upload className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        <div className="p-1 rounded-md bg-sky-100 dark:bg-sky-900/20">
+                          <Upload className="h-3 w-3 text-sky-500 dark:text-sky-400" />
                         </div>
-                        Upload
+                        <span className="text-foreground">Upload</span>
                       </div>
                     </TableCell>
-                    <TableCell>{formatBytes(accounting.outputOctets)}</TableCell>
-                    <TableCell>{accounting.outputPackets.toLocaleString()}</TableCell>
-                    <TableCell>{accounting.outputGigawords}</TableCell>
-                    <TableCell className="font-medium text-blue-600 dark:text-blue-400">
+                    <TableCell className="text-foreground">{formatBytes(accounting.outputOctets)}</TableCell>
+                    <TableCell className="text-foreground">{accounting.outputPackets.toLocaleString()}</TableCell>
+                    <TableCell className="text-foreground">{accounting.outputGigawords}</TableCell>
+                    <TableCell className="font-medium text-sky-500 dark:text-sky-400">
                       {formatBytes(accounting.totalOutputBytes)}
                     </TableCell>
                   </TableRow>
-                  <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
+                  <TableRow className="bg-muted/50">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-md bg-purple-100 dark:bg-purple-900/30">
-                          <Layers className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                        <div className="p-1 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                          <Layers className="h-3 w-3 text-fuchsia-500 dark:text-fuchsia-400" />
                         </div>
-                        Total
+                        <span className="text-foreground">Total</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-foreground">
                       {formatBytes(accounting.inputOctets + accounting.outputOctets)}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-foreground">
                       {(accounting.inputPackets + accounting.outputPackets).toLocaleString()}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-foreground">
                       {accounting.inputGigawords + accounting.outputGigawords}
                     </TableCell>
-                    <TableCell className="font-medium text-purple-600 dark:text-purple-400">
+                    <TableCell className="font-medium text-fuchsia-500 dark:text-fuchsia-400">
                       {formatBytes(accounting.totalBytes)}
                     </TableCell>
                   </TableRow>
@@ -197,43 +197,43 @@ export function DetailedAccounting({ username }: DetailedAccountingProps) {
           {/* Network Details */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30">
-                <Network className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-1.5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-900/20">
+                <Network className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
               </div>
-              <h3 className="text-sm font-medium">Network Details</h3>
+              <h3 className="text-sm font-medium text-foreground">Network Details</h3>
             </div>
-            <div className="rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="rounded-lg border border-border/50 overflow-hidden">
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">Framed IP</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.framedIpAddress}</TableCell>
-                    <TableCell className="font-medium text-gray-500">Rate Limit</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.mikrotikRateLimit}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Framed IP</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.framedIpAddress}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Rate Limit</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.mikrotikRateLimit}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">Called Station</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.calledStationId}</TableCell>
-                    <TableCell className="font-medium text-gray-500">Calling Station</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.callingStationId}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Called Station</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.calledStationId}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Calling Station</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.callingStationId}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">NAS IP</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.nasIpAddress}</TableCell>
-                    <TableCell className="font-medium text-gray-500">NAS Identifier</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.nasIdentifier}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">NAS IP</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.nasIpAddress}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">NAS Identifier</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.nasIdentifier}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">NAS Port</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.nasPort}</TableCell>
-                    <TableCell className="font-medium text-gray-500">NAS Port Type</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.nasPortType}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">NAS Port</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.nasPort}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">NAS Port Type</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.nasPortType}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium text-gray-500">Service Type</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.serviceType}</TableCell>
-                    <TableCell className="font-medium text-gray-500">Framed Protocol</TableCell>
-                    <TableCell className="font-mono text-sm">{accounting.framedProtocol}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Service Type</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.serviceType}</TableCell>
+                    <TableCell className="font-medium text-muted-foreground">Framed Protocol</TableCell>
+                    <TableCell className="font-mono text-sm text-foreground">{accounting.framedProtocol}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

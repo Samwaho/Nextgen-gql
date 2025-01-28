@@ -8,17 +8,17 @@ import { cn } from "@/lib/utils";
 
 const LoadingState = () => (
   <div className="flex flex-col items-center justify-center h-[120px]">
-    <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400" />
-    <span className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading customers...</span>
+    <Loader2 className="h-8 w-8 animate-spin text-fuchsia-500" />
+    <span className="text-sm text-muted-foreground mt-2">Loading customers...</span>
   </div>
 );
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-[120px] text-center">
-    <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full mb-2">
-      <UsersIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+    <div className="p-2 bg-fuchsia-100 dark:bg-fuchsia-900/20 rounded-full mb-2">
+      <UsersIcon className="h-5 w-5 text-fuchsia-500 dark:text-fuchsia-400" />
     </div>
-    <p className="text-sm text-gray-500 dark:text-gray-400">No customers yet</p>
+    <p className="text-sm text-muted-foreground">No customers yet</p>
   </div>
 );
 
@@ -56,11 +56,11 @@ export function CustomerStats() {
     <div className="space-y-4">
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-2xl font-bold text-foreground">
             {totalCustomers}
           </div>
           {expiringNextWeek > 0 && (
-            <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+            <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
               <SignalIcon className="h-4 w-4" />
               <span className="text-xs font-medium">
                 {expiringNextWeek} expiring soon
@@ -72,46 +72,48 @@ export function CustomerStats() {
           <div className="flex items-center gap-1.5">
             <div className={cn(
               "h-2 w-2 rounded-full",
-              activeCustomers > 0 ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+              activeCustomers > 0 ? "bg-emerald-500" : "bg-muted"
             )} />
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-muted-foreground">
               {activeCustomers} active now
             </span>
           </div>
-          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-xs font-medium bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
             {activePercentage}%
           </span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-          <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
-            <WifiIcon className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+        <div className="flex items-center gap-2 p-2 glass-card rounded-lg">
+          <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-full">
+            <WifiIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Online</p>
-            <p className="text-xs text-gray-500 truncate">{activeCustomers} users</p>
+            <p className="text-xs font-medium text-foreground">Online</p>
+            <p className="text-xs text-muted-foreground truncate">{activeCustomers} users</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-          <div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded-full">
-            <WifiOffIcon className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+        <div className="flex items-center gap-2 p-2 glass-card rounded-lg">
+          <div className="p-1.5 bg-slate-100 dark:bg-slate-900/20 rounded-full">
+            <WifiOffIcon className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Offline</p>
-            <p className="text-xs text-gray-500 truncate">{totalCustomers - activeCustomers} users</p>
+            <p className="text-xs font-medium text-foreground">Offline</p>
+            <p className="text-xs text-muted-foreground truncate">{totalCustomers - activeCustomers} users</p>
           </div>
         </div>
       </div>
 
       {mostPopularPackage && (
-        <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+        <div className="pt-3 border-t border-border/20">
           <div className="flex items-center gap-2">
-            <TrendingUpIcon className="h-4 w-4 text-purple-500 dark:text-purple-400" />
+            <div className="p-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full">
+              <TrendingUpIcon className="h-4 w-4 text-white" />
+            </div>
             <div className="min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Most popular plan</p>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              <p className="text-xs text-muted-foreground">Most popular plan</p>
+              <p className="text-sm font-medium text-foreground truncate">
                 {mostPopularPackage[0]}
               </p>
             </div>

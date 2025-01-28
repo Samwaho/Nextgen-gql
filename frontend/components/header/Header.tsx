@@ -46,12 +46,12 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
         <div className="block lg:hidden">
           <MobileSidebar loggedInUser={loggedInUser} />
         </div>
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg min-w-[240px]">
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-lg min-w-[240px]">
           <Search className="w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Quick search..."
-            className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground/70"
+            className="bg-transparent border-none outline-none text-sm w-full text-foreground placeholder:text-muted-foreground/70"
           />
         </div>
       </div>
@@ -64,8 +64,8 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
                 <NotificationsDrawer loggedInUser={loggedInUser} />
               </div>
             </TooltipTrigger>
-            <TooltipContent sideOffset={10}>
-              <p>Notifications</p>
+            <TooltipContent sideOffset={10} className="bg-background border-border/50">
+              <p className="text-foreground">Notifications</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -75,19 +75,19 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <HelpCircle className="h-[1.2rem] w-[1.2rem]" />
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20">
+                <HelpCircle className="h-[1.2rem] w-[1.2rem] text-muted-foreground" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent sideOffset={10}>
-              <p>Help & Resources</p>
+            <TooltipContent sideOffset={10} className="bg-background border-border/50">
+              <p className="text-foreground">Help & Resources</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
         <Popover>
           <PopoverTrigger>
-            <div className="flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 p-2 rounded-lg transition-colors">
+            <div className="flex items-center gap-2 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 p-2 rounded-lg transition-colors">
               <div className="flex w-8 h-8 items-center justify-center rounded-full bg-gradient-custom shadow-md hover:scale-105 transition-transform">
                 <p className="text-white uppercase font-medium">
                   {loggedInUser?.name?.[0] || "U"}
@@ -95,17 +95,17 @@ const Header: React.FC<Props> = ({ loggedInUser }) => {
               </div>
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-56 p-2 border border-gray-100 dark:border-gray-800 shadow-lg rounded-xl">
+          <PopoverContent className="w-56 p-2 bg-background border-border/50 shadow-lg rounded-xl">
             <Link
               href="/main/profile"
-              className="flex items-center gap-2 p-2.5 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+              className="flex items-center gap-2 p-2.5 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 rounded-lg transition-colors text-foreground"
             >
-              <UserCircle className="w-4 h-4" />
+              <UserCircle className="w-4 h-4 text-muted-foreground" />
               <span className="font-medium">View Profile</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 p-2.5 w-full hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 transition-colors mt-1"
+              className="flex items-center gap-2 p-2.5 w-full hover:bg-rose-100 dark:hover:bg-rose-900/20 rounded-lg text-rose-500 transition-colors mt-1"
             >
               <LogOut className="w-4 h-4" />
               <span className="font-medium">Logout</span>

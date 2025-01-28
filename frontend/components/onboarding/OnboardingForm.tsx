@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAgency, AgencyInput, Agency } from "@/graphql/agency";
+import { Progress } from "@/components/ui/progress";
+import { Check, ChevronLeft, ChevronRight, Building2, Image, CreditCard } from "lucide-react";
 
 type AgencyProps = z.infer<typeof agencySchema>;
 
@@ -21,11 +23,26 @@ interface OnboardingFormProps {
   initialData?: Agency;
 }
 
+type TabKey = 'general' | 'media' | 'mpesa';
+
 const OnboardingForm = ({ initialData }: OnboardingFormProps) => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState<TabKey>("general");
   const [showAlert, setShowAlert] = useState(false);
   const { createAgency, updateAgency, isCreating, isUpdating } = useAgency();
+  const [progress, setProgress] = useState(33);
+
+  const tabConfig = {
+    general: { icon: Building2, title: "General Information", description: "Basic agency details" },
+    media: { icon: Image, title: "Media Assets", description: "Logo and banner images" },
+    mpesa: { icon: CreditCard, title: "M-PESA Integration", description: "Payment gateway setup" },
+  } as const;
+
+  const tabProgressMap: Record<TabKey, number> = {
+    general: 33,
+    media: 66,
+    mpesa: 100,
+  };
 
   const form = useForm<AgencyProps>({
     resolver: zodResolver(agencySchema),
@@ -73,6 +90,10 @@ const OnboardingForm = ({ initialData }: OnboardingFormProps) => {
       });
     }
   }, [initialData, form]);
+
+  useEffect(() => {
+    setProgress(tabProgressMap[activeTab]);
+  }, [activeTab]);
 
   const onSubmit = async (values: AgencyProps) => {
     // Check only required fields
@@ -134,192 +155,239 @@ const OnboardingForm = ({ initialData }: OnboardingFormProps) => {
     }
   };
 
+  const handleTabChange = (direction: 'next' | 'prev') => {
+    const tabs: TabKey[] = ['general', 'media', 'mpesa'];
+    const currentIndex = tabs.indexOf(activeTab);
+    if (direction === 'next') {
+      const nextTab = tabs[currentIndex + 1] || tabs[0];
+      setActiveTab(nextTab);
+    } else {
+      const prevTab = tabs[currentIndex - 1] || tabs[tabs.length - 1];
+      setActiveTab(prevTab);
+    }
+  };
+
+  const handleTabValueChange = (value: string) => {
+    setActiveTab(value as TabKey);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {showAlert && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Incomplete Form</AlertTitle>
-            <AlertDescription>
-              Please fill out all fields in all tabs before submitting.
-            </AlertDescription>
-          </Alert>
+          <div className="animate-in slide-in-from-top-1 duration-300">
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-5 w-5" />
+              <AlertTitle className="font-semibold tracking-tight">Incomplete Form</AlertTitle>
+              <AlertDescription className="text-sm text-muted-foreground">
+                Please fill out all required fields before proceeding.
+              </AlertDescription>
+            </Alert>
+          </div>
         )}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 border-b">
-            <TabsTrigger value="general">General Info</TabsTrigger>
-            <TabsTrigger value="media">Media</TabsTrigger>
-            <TabsTrigger value="mpesa">M-PESA</TabsTrigger>
+
+        <div className="space-y-4">
+          <div className="relative h-2 w-full bg-muted rounded-full overflow-hidden">
+            <Progress 
+              value={progress} 
+              className="h-full transition-all duration-300 ease-in-out bg-gradient-to-r from-fuchsia-500 to-fuchsia-400" 
+            />
+          </div>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Step {Object.keys(tabConfig).indexOf(activeTab) + 1} of 3</span>
+            <span>{Math.round(progress)}% Complete</span>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={handleTabValueChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 gap-4 bg-muted/40 p-1 rounded-lg">
+            {Object.entries(tabConfig).map(([key, { icon: Icon, title }]) => (
+              <TabsTrigger
+                key={key}
+                value={key}
+                className="data-[state=active]:bg-fuchsia-50 data-[state=active]:text-fuchsia-900 data-[state=active]:shadow-sm transition-all duration-200"
+              >
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{title}</span>
+                </div>
+              </TabsTrigger>
+            ))}
           </TabsList>
-          <TabsContent value="general" className="mt-6">
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="name"
-                  label="Agency Name"
-                  placeholder="Enter Your Agency Name"
-                />
-                <CustomInput
-                  control={form.control}
-                  name="email"
-                  label="Email"
-                  placeholder="Enter Agency Email"
-                />
+
+          {Object.entries(tabConfig).map(([key, { title, description }]) => (
+            <TabsContent key={key} value={key} className="mt-6 space-y-6 animate-in slide-in-from-right-1 duration-300">
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+                <p className="text-sm text-muted-foreground">{description}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="phone"
-                  label="Phone Number"
-                  placeholder="Enter Agency Phone Number"
-                />
-                <CustomInput
-                  control={form.control}
-                  name="website"
-                  label="Website"
-                  placeholder="Enter Agency Website"
-                />
+              
+              <div className="space-y-6">
+                {key === "general" && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <CustomInput
+                        control={form.control}
+                        name="name"
+                        label="Agency Name"
+                        placeholder="Enter Your Agency Name"
+                      />
+                      <CustomInput
+                        control={form.control}
+                        name="email"
+                        label="Email"
+                        placeholder="Enter Agency Email"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <CustomInput
+                        control={form.control}
+                        name="phone"
+                        label="Phone Number"
+                        placeholder="Enter Agency Phone Number"
+                      />
+                      <CustomInput
+                        control={form.control}
+                        name="website"
+                        label="Website"
+                        placeholder="Enter Agency Website"
+                      />
+                    </div>
+                    <CustomInput
+                      control={form.control}
+                      name="address"
+                      label="Address"
+                      placeholder="Enter Agency Address"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="description"
+                      label="Description"
+                      placeholder="Enter Agency Description"
+                    />
+                  </>
+                )}
+
+                {key === "media" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <CustomInput
+                      control={form.control}
+                      name="logo"
+                      label="Logo URL"
+                      placeholder="Enter Logo URL"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="banner"
+                      label="Banner URL"
+                      placeholder="Enter Banner URL"
+                    />
+                  </div>
+                )}
+
+                {key === "mpesa" && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaConsumerKey"
+                        label="M-Pesa Consumer Key"
+                        placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Consumer Key"}
+                      />
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaConsumerSecret"
+                        label="M-Pesa Consumer Secret"
+                        placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Consumer Secret"}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaShortcode"
+                        label="M-Pesa Shortcode"
+                        placeholder="Enter M-Pesa Shortcode"
+                      />
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaPasskey"
+                        label="M-Pesa Passkey"
+                        placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Passkey"}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaB2cShortcode"
+                        label="M-Pesa B2C Shortcode"
+                        placeholder="Enter M-Pesa B2C Shortcode"
+                      />
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaB2bShortcode"
+                        label="M-Pesa B2B Shortcode"
+                        placeholder="Enter M-Pesa B2B Shortcode"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaInitiatorName"
+                        label="M-Pesa Initiator Name"
+                        placeholder="Enter M-Pesa Initiator Name"
+                      />
+                      <CustomInput
+                        control={form.control}
+                        name="mpesaInitiatorPassword"
+                        label="M-Pesa Initiator Password"
+                        placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Initiator Password"}
+                        type="password"
+                      />
+                    </div>
+                    <CustomInput
+                      control={form.control}
+                      name="mpesaEnv"
+                      label="M-Pesa Environment"
+                      placeholder="sandbox or production"
+                    />
+                  </>
+                )}
               </div>
-              <CustomInput
-                control={form.control}
-                name="address"
-                label="Address"
-                placeholder="Enter Agency Address"
-              />
-              <CustomInput
-                control={form.control}
-                name="description"
-                label="Description"
-                placeholder="Enter Agency Description"
-              />
-            </div>
-          </TabsContent>
-          <TabsContent value="media" className="mt-6">
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="logo"
-                  label="Logo URL"
-                  placeholder="Enter Logo URL"
-                />
-                <CustomInput
-                  control={form.control}
-                  name="banner"
-                  label="Banner URL"
-                  placeholder="Enter Banner URL"
-                />
-              </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="mpesa" className="mt-6">
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="mpesaConsumerKey"
-                  label="M-Pesa Consumer Key"
-                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Consumer Key"}
-                />
-                <CustomInput
-                  control={form.control}
-                  name="mpesaConsumerSecret"
-                  label="M-Pesa Consumer Secret"
-                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Consumer Secret"}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="mpesaShortcode"
-                  label="M-Pesa Shortcode"
-                  placeholder="Enter M-Pesa Shortcode"
-                />
-                <CustomInput
-                  control={form.control}
-                  name="mpesaPasskey"
-                  label="M-Pesa Passkey"
-                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Passkey"}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="mpesaB2cShortcode"
-                  label="M-Pesa B2C Shortcode"
-                  placeholder="Enter M-Pesa B2C Shortcode"
-                />
-                <CustomInput
-                  control={form.control}
-                  name="mpesaB2bShortcode"
-                  label="M-Pesa B2B Shortcode"
-                  placeholder="Enter M-Pesa B2B Shortcode"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <CustomInput
-                  control={form.control}
-                  name="mpesaInitiatorName"
-                  label="M-Pesa Initiator Name"
-                  placeholder="Enter M-Pesa Initiator Name"
-                />
-                <CustomInput
-                  control={form.control}
-                  name="mpesaInitiatorPassword"
-                  label="M-Pesa Initiator Password"
-                  placeholder={initialData ? "Leave blank to keep existing" : "Enter M-Pesa Initiator Password"}
-                  type="password"
-                />
-              </div>
-              <CustomInput
-                control={form.control}
-                name="mpesaEnv"
-                label="M-Pesa Environment"
-                placeholder="sandbox or production"
-              />
-            </div>
-          </TabsContent>
+            </TabsContent>
+          ))}
         </Tabs>
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-6 border-t border-fuchsia-100/20">
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              const tabs = ["general", "media", "mpesa"];
-              const currentIndex = tabs.indexOf(activeTab);
-              const prevTab = tabs[currentIndex - 1] || tabs[tabs.length - 1];
-              setActiveTab(prevTab);
-            }}
+            onClick={() => handleTabChange('prev')}
+            className="flex items-center gap-2 transition-all duration-200 hover:-translate-x-0.5 hover:border-fuchsia-200"
           >
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              const tabs = ["general", "media", "mpesa"];
-              const currentIndex = tabs.indexOf(activeTab);
-              const nextTab = tabs[currentIndex + 1] || tabs[0];
-              setActiveTab(nextTab);
-            }}
+            onClick={() => handleTabChange('next')}
+            className="flex items-center gap-2 transition-all duration-200 hover:translate-x-0.5 hover:border-fuchsia-200"
           >
             Next
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        <div>
+        <div className="animate-in fade-in-50 duration-300">
           <Button
-            className="flex w-full justify-center rounded-md bg-gradient-to-tl from-pink-500 to-purple-600 text-white py-2 px-4 hover:opacity-85"
+            className="flex w-full justify-center items-center gap-2 rounded-lg bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-600 text-white py-2.5 px-4 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 hover:scale-[1.01]"
             type="submit"
             disabled={isCreating || isUpdating}
           >
             {isCreating || isUpdating ? (
               <div className="flex items-center gap-2">
                 <svg
-                  className="animate-spin h-5 w-5 text-white"
+                  className="animate-spin h-5 w-5"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -341,7 +409,10 @@ const OnboardingForm = ({ initialData }: OnboardingFormProps) => {
                 {initialData ? "Updating Agency..." : "Creating Agency..."}
               </div>
             ) : (
-              initialData ? "Update Agency" : "Create Agency"
+              <>
+                <Check className="h-5 w-5" />
+                {initialData ? "Update Agency" : "Create Agency"}
+              </>
             )}
           </Button>
         </div>

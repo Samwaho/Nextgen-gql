@@ -31,19 +31,19 @@ const Sidebar: React.FC<Props> = ({ loggedInUser }) => {
   };
 
   return (
-    <div className="h-[95dvh] bg-card_light dark:bg-card_dark p-6 flex-1 shadow-lg rounded-3xl hidden md:flex flex-col justify-between transition-all duration-300 hover:shadow-xl">
+    <div className="h-[95dvh] bg-card_light dark:bg-card_dark dark:glass-card p-6 flex-1 rounded-3xl hidden md:flex flex-col justify-between transition-all duration-300 hover:shadow-xl">
       <div>
         <div className="flex justify-between items-center mb-6">
-          <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
             NextGen
           </span>
-          <Menu className="cursor-pointer size-5 hover:text-purple-500 transition-colors" />
+          <Menu className="cursor-pointer size-5 text-muted-foreground hover:text-fuchsia-500 transition-colors" />
         </div>
         <div className="-ms-2">
           <Command className="bg-transparent">
             <CommandInput
               placeholder="Search menu item..."
-              className="border-none focus:ring-2 focus:ring-purple-500"
+              className="border-none focus:ring-2 focus:ring-fuchsia-500"
             />
 
             <CommandList className="mt-4">
@@ -51,7 +51,7 @@ const Sidebar: React.FC<Props> = ({ loggedInUser }) => {
               {sidebarData.map((item) => (
                 <CommandItem
                   key={item.title}
-                  className="py-2 px-1 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md transition-colors"
+                  className="py-2 px-1 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 rounded-md transition-colors"
                 >
                   <Link
                     className="flex items-center gap-4 w-full"
@@ -71,8 +71,8 @@ const Sidebar: React.FC<Props> = ({ loggedInUser }) => {
                       className={`text-md font-medium ${
                         (item.path === "/main" && pathname === "/main") || 
                         (item.path !== "/main" && pathname.startsWith(item.path))
-                          ? "text-purple-600 dark:text-purple-400"
-                          : ""
+                          ? "text-fuchsia-600 dark:text-fuchsia-400"
+                          : "text-muted-foreground"
                       }`}
                     >
                       {item.title}
@@ -86,35 +86,39 @@ const Sidebar: React.FC<Props> = ({ loggedInUser }) => {
       </div>
 
       {loggedInUser && (
-        <div className="flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
           <Popover>
             <PopoverTrigger className="w-full">
-              <div className="flex items-center justify-between hover:bg-purple-50 dark:hover:bg-purple-900/20 p-2 rounded-lg transition-colors">
+              <div className="flex items-center justify-between hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 p-2 rounded-lg transition-colors">
                 <div className="flex items-center gap-3 group">
                   <div className="flex size-8 items-center justify-center rounded-full bg-gradient-custom shadow-md group-hover:scale-105 transition-transform">
                     <p className="text-white uppercase font-medium">
                       {loggedInUser?.name?.[0] || "U"}
                     </p>
                   </div>
-                  <p className="text-md capitalize font-medium group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <p className="text-md capitalize font-medium text-muted-foreground group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 transition-colors">
                     {loggedInUser?.name || "User"}
                   </p>
                 </div>
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-2 border border-gray-100 dark:border-gray-800 shadow-lg rounded-xl bg-white dark:bg-gray-900">
+            <PopoverContent className="w-56 p-2 glass-card rounded-xl">
               <Link
                 href="/main/profile"
-                className="flex items-center gap-2 p-2.5 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                className="flex items-center gap-2 p-2.5 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 rounded-lg transition-colors"
               >
-                <UserCircle className="size-4.5" />
-                <span className="font-medium">View Profile</span>
+                <div className="p-1 bg-fuchsia-100 dark:bg-fuchsia-900/20 rounded-full">
+                  <UserCircle className="size-4 text-fuchsia-500 dark:text-fuchsia-400" />
+                </div>
+                <span className="font-medium text-foreground">View Profile</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 p-2.5 w-full hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 transition-colors mt-1"
+                className="flex items-center gap-2 p-2.5 w-full hover:bg-rose-100 dark:hover:bg-rose-900/20 rounded-lg text-rose-500 transition-colors mt-1"
               >
-                <LogOut className="size-4.5" />
+                <div className="p-1 bg-rose-100 dark:bg-rose-900/20 rounded-full">
+                  <LogOut className="size-4" />
+                </div>
                 <span className="font-medium">Logout</span>
               </button>
             </PopoverContent>

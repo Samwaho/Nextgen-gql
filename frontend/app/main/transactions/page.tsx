@@ -131,7 +131,22 @@ export default function TransactionsPage() {
   };
 
   if (error) {
-    return <div>Error loading transactions: {error.message}</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)]">
+        <div className="p-3 rounded-lg bg-rose-100 dark:bg-rose-900/20">
+          <BanknoteIcon className="h-12 w-12 text-rose-500 dark:text-rose-400" />
+        </div>
+        <p className="text-sm text-rose-500 dark:text-rose-400 mt-4">Error loading transactions</p>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => window.location.reload()}
+          className="mt-2 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
+        >
+          Try again
+        </Button>
+      </div>
+    );
   }
 
   const transactions = data?.mpesaTransactions || [];
@@ -148,69 +163,73 @@ export default function TransactionsPage() {
     <div className="mt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          <span className="text-sm font-normal text-gray-500">page/ </span>
-          Transactions
+          <span className="text-sm font-normal text-muted-foreground">page/ </span>
+          <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            Transactions
+          </span>
         </h1>
-        <p className="text-sm text-gray-500">{formatDate()}</p>
+        <p className="text-sm text-muted-foreground">{formatDate()}</p>
       </div>
 
       {/* Stats Cards */}
       <div className="flex gap-4 mt-6 flex-wrap">
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Total Amount</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <BanknoteIcon className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Total Amount</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <BanknoteIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{formatAmount(totalAmount)}</h1>
-          <p className="text-xs md:text-sm text-gray-500">All transactions</p>
+          <h1 className="font-bold text-lg text-foreground">{formatAmount(totalAmount)}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">All transactions</p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Incoming</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <ArrowDownIcon className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Incoming</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <ArrowDownIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{formatAmount(incomingAmount)}</h1>
-          <p className="text-xs md:text-sm text-gray-500">Received payments</p>
+          <h1 className="font-bold text-lg text-foreground">{formatAmount(incomingAmount)}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Received payments</p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Outgoing</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <ArrowUpIcon className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Outgoing</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <ArrowUpIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{formatAmount(outgoingAmount)}</h1>
-          <p className="text-xs md:text-sm text-gray-500">Sent payments</p>
+          <h1 className="font-bold text-lg text-foreground">{formatAmount(outgoingAmount)}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Sent payments</p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Pending</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <ClockIcon className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Pending</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <ClockIcon className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">
+          <h1 className="font-bold text-lg text-foreground">
             {pendingTransactions.length}
           </h1>
-          <p className="text-xs md:text-sm text-gray-500">Awaiting completion</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Awaiting completion</p>
         </div>
       </div>
 
       {/* Actions and Filters */}
       <div className="flex items-center justify-between mt-6">
-        <h4 className="text-lg font-semibold">Transaction History</h4>
+        <h4 className="text-lg font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+          Transaction History
+        </h4>
         <div className="flex gap-2">
           <Dialog open={isB2CDialogOpen} onOpenChange={setIsB2CDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-custom text-white">Send to Customer</Button>
+              <Button className="bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 text-white">Send to Customer</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-background border-border/50">
               <DialogHeader>
-                <DialogTitle>Business to Customer Payment</DialogTitle>
+                <DialogTitle className="text-foreground">Business to Customer Payment</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleB2CSubmit} className="space-y-4">
                 <Input
@@ -218,6 +237,7 @@ export default function TransactionsPage() {
                   value={b2cForm.phone}
                   onChange={(e) => setB2CForm({ ...b2cForm, phone: e.target.value })}
                   required
+                  className="bg-background"
                 />
                 <Input
                   type="number"
@@ -225,23 +245,26 @@ export default function TransactionsPage() {
                   value={b2cForm.amount || ""}
                   onChange={(e) => setB2CForm({ ...b2cForm, amount: parseFloat(e.target.value) })}
                   required
+                  className="bg-background"
                 />
                 <Input
                   placeholder="Reference"
                   value={b2cForm.reference}
                   onChange={(e) => setB2CForm({ ...b2cForm, reference: e.target.value })}
                   required
+                  className="bg-background"
                 />
                 <Input
                   placeholder="Remarks"
                   value={b2cForm.remarks}
                   onChange={(e) => setB2CForm({ ...b2cForm, remarks: e.target.value })}
                   required
+                  className="bg-background"
                 />
                 <Button 
                   type="submit" 
                   disabled={isInitiatingB2C}
-                  className="w-full bg-gradient-custom text-white"
+                  className="w-full bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 text-white"
                 >
                   {isInitiatingB2C ? (
                     <>
@@ -258,11 +281,11 @@ export default function TransactionsPage() {
 
           <Dialog open={isB2BDialogOpen} onOpenChange={setIsB2BDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-custom text-white">Send to Business</Button>
+              <Button className="bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 text-white">Send to Business</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-background border-border/50">
               <DialogHeader>
-                <DialogTitle>Business to Business Payment</DialogTitle>
+                <DialogTitle className="text-foreground">Business to Business Payment</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleB2BSubmit} className="space-y-4">
                 <Input
@@ -270,6 +293,7 @@ export default function TransactionsPage() {
                   value={b2bForm.receiverShortcode}
                   onChange={(e) => setB2BForm({ ...b2bForm, receiverShortcode: e.target.value })}
                   required
+                  className="bg-background"
                 />
                 <Input
                   type="number"
@@ -277,23 +301,26 @@ export default function TransactionsPage() {
                   value={b2bForm.amount || ""}
                   onChange={(e) => setB2BForm({ ...b2bForm, amount: parseFloat(e.target.value) })}
                   required
+                  className="bg-background"
                 />
                 <Input
                   placeholder="Reference"
                   value={b2bForm.reference}
                   onChange={(e) => setB2BForm({ ...b2bForm, reference: e.target.value })}
                   required
+                  className="bg-background"
                 />
                 <Input
                   placeholder="Remarks"
                   value={b2bForm.remarks}
                   onChange={(e) => setB2BForm({ ...b2bForm, remarks: e.target.value })}
                   required
+                  className="bg-background"
                 />
                 <Button 
                   type="submit" 
                   disabled={isInitiatingB2B}
-                  className="w-full bg-gradient-custom text-white"
+                  className="w-full bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 text-white"
                 >
                   {isInitiatingB2B ? (
                     <>
@@ -312,13 +339,13 @@ export default function TransactionsPage() {
 
       <div className="mt-4">
         <Tabs defaultValue="all" className="">
-          <TabsList className="mx-auto">
-            <TabsTrigger value="all">ALL</TabsTrigger>
-            <TabsTrigger value="c2b">INCOMING</TabsTrigger>
-            <TabsTrigger value="outgoing">OUTGOING</TabsTrigger>
+          <TabsList className="mx-auto bg-card">
+            <TabsTrigger value="all" className="data-[state=active]:bg-fuchsia-100 dark:data-[state=active]:bg-fuchsia-900/20 data-[state=active]:text-fuchsia-500 dark:data-[state=active]:text-fuchsia-400">ALL</TabsTrigger>
+            <TabsTrigger value="c2b" className="data-[state=active]:bg-fuchsia-100 dark:data-[state=active]:bg-fuchsia-900/20 data-[state=active]:text-fuchsia-500 dark:data-[state=active]:text-fuchsia-400">INCOMING</TabsTrigger>
+            <TabsTrigger value="outgoing" className="data-[state=active]:bg-fuchsia-100 dark:data-[state=active]:bg-fuchsia-900/20 data-[state=active]:text-fuchsia-500 dark:data-[state=active]:text-fuchsia-400">OUTGOING</TabsTrigger>
           </TabsList>
           <TabsContent value="all">
-            <div className="bg-card_light dark:bg-card_dark mt-2 px-4 py-6 rounded-xl shadow-md">
+            <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-4 py-6 rounded-xl shadow-md">
               {/* Filters */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <Input
@@ -374,13 +401,13 @@ export default function TransactionsPage() {
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-8">
                           <div className="flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                            <Loader2 className="h-8 w-8 animate-spin text-fuchsia-500" />
                           </div>
                         </TableCell>
                       </TableRow>
                     ) : transactions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           No transactions found
                         </TableCell>
                       </TableRow>
@@ -414,7 +441,7 @@ export default function TransactionsPage() {
             </div>
           </TabsContent>
           <TabsContent value="c2b">
-            <div className="bg-card_light dark:bg-card_dark mt-2 px-4 py-6 rounded-xl shadow-md">
+            <div className="glass-card mt-2 px-4 py-6 rounded-xl shadow-md">
               <div className="rounded-md border bg-background">
                 <Table>
                   <TableHeader>
@@ -460,7 +487,7 @@ export default function TransactionsPage() {
             </div>
           </TabsContent>
           <TabsContent value="outgoing">
-            <div className="bg-card_light dark:bg-card_dark mt-2 px-4 py-6 rounded-xl shadow-md">
+            <div className="glass-card mt-2 px-4 py-6 rounded-xl shadow-md">
               <div className="rounded-md border bg-background">
                 <Table>
                   <TableHeader>

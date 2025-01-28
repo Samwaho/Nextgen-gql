@@ -4,7 +4,7 @@ import React from "react";
 import { columns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
-import { Building, Building2 } from "lucide-react";
+import { Building, Building2, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@apollo/client";
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 
 const Page = () => {
-  const { data, loading } = useQuery(GET_STATIONS);
+  const { data, loading, error } = useQuery(GET_STATIONS);
   const stations: Station[] = data?.stations || [];
 
   const totalStations = stations.length;
@@ -33,17 +33,19 @@ const Page = () => {
       <div className="mt-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">
-            <span className="text-sm font-normal text-gray-500">page/ </span>
-            Stations
+            <span className="text-sm font-normal text-muted-foreground">page/ </span>
+            <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+              Stations
+            </span>
           </h1>
-          <p className="text-sm text-gray-500">{formatDate()}</p>
+          <p className="text-sm text-muted-foreground">{formatDate()}</p>
         </div>
 
         <div className="flex gap-4 mt-6 flex-wrap">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
+              className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]"
             >
               <div className="flex justify-between">
                 <Skeleton className="h-4 w-24" />
@@ -61,7 +63,7 @@ const Page = () => {
         </div>
 
         <div className="mt-4">
-          <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
+          <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
             <div className="flex flex-col gap-4">
               <div className="flex justify-center">
                 <Skeleton className="h-8 w-48 rounded-lg" />
@@ -76,90 +78,113 @@ const Page = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)]">
+        <div className="p-3 rounded-lg bg-rose-100 dark:bg-rose-900/20">
+          <Building className="h-12 w-12 text-rose-500 dark:text-rose-400" />
+        </div>
+        <p className="text-sm text-rose-500 dark:text-rose-400 mt-4">Error loading stations</p>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => window.location.reload()}
+          className="mt-2 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20"
+        >
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          <span className="text-sm font-normal text-gray-500">page/ </span>
-          Stations
+          <span className="text-sm font-normal text-muted-foreground">page/ </span>
+          <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            Stations
+          </span>
         </h1>
-        <p className="text-sm text-gray-500">{formatDate()}</p>
+        <p className="text-sm text-muted-foreground">{formatDate()}</p>
       </div>
 
       <div className="flex gap-4 mt-6 flex-wrap">
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Total stations</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Building className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Total stations</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Building className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{totalStations}</h1>
-          <p className="text-xs md:text-sm text-gray-500">
+          <h1 className="font-bold text-lg text-foreground">{totalStations}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             All registered stations
           </p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Active stations</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Building2 className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Active stations</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Building2 className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{activeStations}</h1>
-          <p className="text-xs md:text-sm text-gray-500">
+          <h1 className="font-bold text-lg text-foreground">{activeStations}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Currently active stations
           </p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Total customers</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Building2 className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Total customers</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Building2 className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{totalCustomers}</h1>
-          <p className="text-xs md:text-sm text-gray-500">
+          <h1 className="font-bold text-lg text-foreground">{totalCustomers}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Customers across all stations
           </p>
         </div>
-        <div className="bg-card_light dark:bg-card_dark rounded-md flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
+        <div className="glass-card bg-card_light dark:bg-card_dark rounded-xl flex flex-col gap-2 shadow-md p-3 flex-1 min-w-[150px] max-w-[250px]">
           <div className="flex justify-between">
-            <p className="text-sm text-gray-500">Inactive stations</p>
-            <div className="p-1 rounded-md shadow-md text-white bg-gradient-custom2 w-fit">
-              <Building className="h-4 w-4" />
+            <p className="text-sm text-muted-foreground">Inactive stations</p>
+            <div className="p-1.5 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/20">
+              <Building className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400" />
             </div>
           </div>
-          <h1 className="font-bold text-lg">{inactiveStations}</h1>
-          <p className="text-xs md:text-sm text-gray-500">
+          <h1 className="font-bold text-lg text-foreground">{inactiveStations}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Currently inactive stations
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between mt-6">
-        <h4 className="text-lg font-semibold">Station Table</h4>
+        <h4 className="text-lg font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+          Station Table
+        </h4>
         <Link href="/main/stations/new">
-          <Button className="bg-gradient-custom flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
-            <Building className="h-4 w-4" />
+          <Button className="bg-gradient-custom hover:bg-gradient-custom2 transition-all duration-300 flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 text-sm md:text-base text-white rounded-md">
+            <Plus className="h-4 w-4" />
             <p>Add New</p>
           </Button>
         </Link>
       </div>
       <div className="mt-4">
         <Tabs defaultValue="all" className="">
-          <TabsList className="mx-auto">
-            <TabsTrigger value="all">ALL</TabsTrigger>
-            <TabsTrigger value="active">ACTIVE</TabsTrigger>
-            <TabsTrigger value="inactive">INACTIVE</TabsTrigger>
+          <TabsList className="mx-auto bg-card">
+            <TabsTrigger value="all" className="data-[state=active]:bg-fuchsia-100 dark:data-[state=active]:bg-fuchsia-900/20 data-[state=active]:text-fuchsia-500 dark:data-[state=active]:text-fuchsia-400">ALL</TabsTrigger>
+            <TabsTrigger value="active" className="data-[state=active]:bg-fuchsia-100 dark:data-[state=active]:bg-fuchsia-900/20 data-[state=active]:text-fuchsia-500 dark:data-[state=active]:text-fuchsia-400">ACTIVE</TabsTrigger>
+            <TabsTrigger value="inactive" className="data-[state=active]:bg-fuchsia-100 dark:data-[state=active]:bg-fuchsia-900/20 data-[state=active]:text-fuchsia-500 dark:data-[state=active]:text-fuchsia-400">INACTIVE</TabsTrigger>
           </TabsList>
           <TabsContent value="all">
-            <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
+            <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
               <DataTable columns={columns} data={stations} />
             </div>
           </TabsContent>
           <TabsContent value="active">
-            <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
+            <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
               <DataTable
                 columns={columns}
                 data={stations.filter((station) => station.status === "active")}
@@ -167,7 +192,7 @@ const Page = () => {
             </div>
           </TabsContent>
           <TabsContent value="inactive">
-            <div className="bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
+            <div className="glass-card bg-card_light dark:bg-card_dark mt-2 px-2 py-4 rounded-xl shadow-md">
               <DataTable
                 columns={columns}
                 data={stations.filter((station) => station.status === "inactive")}

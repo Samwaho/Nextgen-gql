@@ -25,24 +25,24 @@ interface OnboardingFormProps {
 
 type TabKey = 'general' | 'media' | 'mpesa';
 
+const tabConfig = {
+  general: { icon: Building2, title: "General Information", description: "Basic agency details" },
+  media: { icon: Image, title: "Media Assets", description: "Logo and banner images" },
+  mpesa: { icon: CreditCard, title: "M-PESA Integration", description: "Payment gateway setup" },
+} as const;
+
+const tabProgressMap = {
+  general: 33,
+  media: 66,
+  mpesa: 100,
+} as const;
+
 const OnboardingForm = ({ initialData }: OnboardingFormProps) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>("general");
   const [showAlert, setShowAlert] = useState(false);
   const { createAgency, updateAgency, isCreating, isUpdating } = useAgency();
   const [progress, setProgress] = useState(33);
-
-  const tabConfig = {
-    general: { icon: Building2, title: "General Information", description: "Basic agency details" },
-    media: { icon: Image, title: "Media Assets", description: "Logo and banner images" },
-    mpesa: { icon: CreditCard, title: "M-PESA Integration", description: "Payment gateway setup" },
-  } as const;
-
-  const tabProgressMap: Record<TabKey, number> = {
-    general: 33,
-    media: 66,
-    mpesa: 100,
-  };
 
   const form = useForm<AgencyProps>({
     resolver: zodResolver(agencySchema),

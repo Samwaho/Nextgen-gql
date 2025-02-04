@@ -14,11 +14,15 @@ from app.routes.ticket_routes import Query as TicketQuery, Mutation as TicketMut
 from app.routes.mpesa_routes import Query as MpesaQuery, Mutation as MpesaMutation
 from app.routes.station_routes import Query as StationQuery, Mutation as StationMutation
 from app.routes.notification_routes import Query as NotificationQuery, Mutation as NotificationMutation
+from app.routes.service_routes import Query as ServiceQuery, Mutation as ServiceMutation
+from app.routes.subscription_routes import Query as SubscriptionQuery, Mutation as SubscriptionMutation
 from app.schemas.mpesa_schemas import (
     MpesaTransaction, TransactionFilter, CustomerPaymentInput,
     TransactionStatus, TransactionType, CommandID, MpesaCallback,
     MpesaResponse
 )
+from app.schemas.service_schemas import Service, Tier, ServiceInput, ServiceUpdateInput
+from app.schemas.subscription_schema import Subscription, SubscriptionInput, SubscriptionUpdateInput
 from app.middleware.auth_middleware import get_context
 import strawberry
 from app.config.settings import settings
@@ -37,7 +41,7 @@ logger = logging.getLogger(__name__)
 class Query(
     UserQuery, AgencyQuery, EmployeeQuery, CustomerQuery,
     InventoryQuery, PackageQuery, TicketQuery, MpesaQuery,
-    StationQuery, NotificationQuery
+    StationQuery, NotificationQuery, ServiceQuery, SubscriptionQuery
 ):
     pass
 
@@ -45,7 +49,8 @@ class Query(
 class Mutation(
     UserMutation, AuthMutation, AgencyMutation, EmployeeMutation,
     CustomerMutation, InventoryMutation, PackageMutation, TicketMutation,
-    MpesaMutation, StationMutation, NotificationMutation
+    MpesaMutation, StationMutation, NotificationMutation, ServiceMutation,
+    SubscriptionMutation
 ):
     pass
 
@@ -59,7 +64,14 @@ schema = strawberry.Schema(
         TransactionStatus,
         TransactionType,
         CommandID,
-        MpesaCallback
+        MpesaCallback,
+        Service,
+        Tier,
+        ServiceInput,
+        ServiceUpdateInput,
+        Subscription,
+        SubscriptionInput,
+        SubscriptionUpdateInput
     ]
 )
 

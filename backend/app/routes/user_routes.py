@@ -1,5 +1,6 @@
 from ..config.database import db
 from ..schemas.user_schema import User, UserInput, UserUpdateInput
+from ..schemas.subscription_schema import Subscription
 from typing import List, Optional
 from datetime import datetime
 import strawberry
@@ -109,6 +110,11 @@ async def update_user(id: str, user_input: UserUpdateInput) -> Optional[User]:
 async def delete_user(id: str) -> bool:
     collection = db.get_collection("users")
     try:
+        # First, delete all user's subscriptions
+        subscriptions_collection = db.get_collection("subscriptions")
+        await subscriptions_collection.delete_many({"user_id": id})
+        
+        # Then delete the user
         result = await collection.delete_one({"_id": ObjectId(id)})
         return result.deleted_count > 0
     except:
@@ -146,11 +152,13 @@ class Query:
     @login_required
     @role_required("admin")
     async def users(self, info: Info) -> List[User]:
+        """Get all users (admin only)"""
         return await get_users()
 
     @strawberry.field
     @login_required
     async def user(self, info: Info, id: str) -> Optional[User]:
+        """Get a specific user"""
         # Users can only access their own profile unless they're admin
         if not has_role(info, "admin") and str(info.context.user["_id"]) != id:
             raise Exception("Not authorized")
@@ -160,11 +168,13 @@ class Query:
 class Mutation:
     @strawberry.mutation
     async def create_user(self, user_input: UserInput) -> User:
+        """Create a new user"""
         return await create_user(user_input)
 
     @strawberry.mutation
     @login_required
     async def update_user(self, info: Info, id: str, user_input: UserUpdateInput) -> Optional[User]:
+        """Update a user (admin or self only)"""
         if not has_role(info, "admin") and str(info.context.user["_id"]) != id:
             raise Exception("Not authorized")
         return await update_user(id, user_input)
@@ -173,4 +183,5 @@ class Mutation:
     @login_required
     @role_required("admin")
     async def delete_user(self, info: Info, id: str) -> bool:
+        """Delete a user and their subscriptions (admin only)"""
         return await delete_user(id) 

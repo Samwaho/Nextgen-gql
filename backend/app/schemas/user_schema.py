@@ -1,7 +1,10 @@
 import strawberry
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Annotated
 from strawberry.scalars import JSON
+
+# Forward reference for Subscription type
+Subscription = Annotated["Subscription", strawberry.lazy(".subscription_schema")]
 
 @strawberry.type
 class User:
@@ -18,6 +21,18 @@ class User:
     is_active: bool = True
     # Security-sensitive fields are intentionally excluded from the GraphQL type
     # verification_code, reset_token, reset_token_expires, verification_expiry
+    
+    # Resolved fields for subscriptions
+    @strawberry.field
+    async def subscriptions(self, info) -> List[Subscription]:
+        from ..routes.subscription_routes import get_user_subscriptions
+        return await get_user_subscriptions(self.id)
+    
+    @strawberry.field
+    async def active_subscriptions(self, info) -> List[Subscription]:
+        from ..routes.subscription_routes import get_user_subscriptions
+        all_subs = await get_user_subscriptions(self.id)
+        return [sub for sub in all_subs if sub.status == "active"]
 
 @strawberry.input
 class UserInput:

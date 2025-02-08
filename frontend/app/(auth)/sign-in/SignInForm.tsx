@@ -44,7 +44,7 @@ const SignInForm = () => {
 
         if (isValidToken(token) && setAuthToken(token)) {
           toast.success("Sign In Successful");
-          router.push("/isp-manager");
+          router.push("/");
         } else {
           toast.error("Failed to save authentication token");
         }

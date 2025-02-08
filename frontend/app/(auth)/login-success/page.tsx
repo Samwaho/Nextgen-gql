@@ -25,7 +25,7 @@ function LoginSuccessContent() {
         const success = await googleLogin(token);
         if (success) {
           toast.success("Successfully logged in");
-          router.push("/isp-manager");
+          router.push("/");
         } else {
           toast.error("Failed to complete authentication");
           router.push("/sign-in");

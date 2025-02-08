@@ -51,7 +51,7 @@ const MobileSidebar: React.FC<Props> = ({ loggedInUser }) => {
             <DrawerHeader className="flex justify-between items-center px-6 pt-6">
               <DrawerTitle>
                 <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
-                  NextGen
+                  NetGN
                 </span>
               </DrawerTitle>
               <DrawerClose>
@@ -122,7 +122,7 @@ const MobileSidebar: React.FC<Props> = ({ loggedInUser }) => {
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-2 glass-card rounded-xl">
                   <Link
-                    href="/main/profile"
+                    href="/profile"
                     className="flex items-center gap-2 p-2.5 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 rounded-lg transition-colors"
                   >
                     <div className="p-1 bg-fuchsia-100 dark:bg-fuchsia-900/20 rounded-full">

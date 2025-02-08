@@ -7,7 +7,7 @@ import ThemeProvider from "@/providers/ThemeProvider";
 import { ApolloProvider } from "@/providers/ApolloProvider";
 
 export const metadata: Metadata = {
-  title: "NextGN - ISP Management System",
+  title: "NetGN - ISP Management System",
   description: "A comprehensive system for managing Internet Service Provider operations, customers, stations, and services",
 };
 

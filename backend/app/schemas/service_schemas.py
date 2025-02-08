@@ -7,13 +7,13 @@ from strawberry.scalars import JSON
 class Tier:
     name: str
     price: float
-    features: JSON = strawberry.field(description="Key-value pairs of features")
+    features: List[str] = strawberry.field(description="List of features")
 
 @strawberry.input
 class TierInput:
     name: str
     price: float
-    features: JSON = strawberry.field(description="Key-value pairs of features")
+    features: List[str] = strawberry.field(description="List of features")
 
 @strawberry.type
 class Service:

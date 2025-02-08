@@ -34,9 +34,10 @@ const Sidebar: React.FC<Props> = ({ loggedInUser }) => {
     <div className="h-[95dvh] bg-card_light dark:bg-card_dark dark:glass-card p-6 flex-1 rounded-3xl hidden md:flex flex-col justify-between transition-all duration-300 hover:shadow-xl">
       <div>
         <div className="flex justify-between items-center mb-6">
-          <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
-            NextGen
-          </span>
+          <Link href="/" className="text-2xl font-bold tracking-wider bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            NetGN
+          </Link>
+
           <Menu className="cursor-pointer size-5 text-muted-foreground hover:text-fuchsia-500 transition-colors" />
         </div>
         <div className="-ms-2">
@@ -104,7 +105,7 @@ const Sidebar: React.FC<Props> = ({ loggedInUser }) => {
             </PopoverTrigger>
             <PopoverContent className="w-56 p-2 glass-card rounded-xl">
               <Link
-                href="/main/profile"
+                href="/profile"
                 className="flex items-center gap-2 p-2.5 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/20 rounded-lg transition-colors"
               >
                 <div className="p-1 bg-fuchsia-100 dark:bg-fuchsia-900/20 rounded-full">

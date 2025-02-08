@@ -44,7 +44,7 @@ const SignUpForm = () => {
       if (data.signup.success && data.signup.token) {
         setAuthToken(data.signup.token.accessToken);
         toast.success("Sign Up successful");
-        router.push("/isp-manager");
+        router.push("/");
       } else {
         toast.error(data.signup.message || "Sign up failed");
       }
